@@ -1,35 +1,6 @@
-auto makefile
+# t-makefile: auto makefile
 
-一、目录树：
-    ProjectName
-	├── 01-lib
-	│   ├── crc.so
-	│   │   └── test
-	│   │       └── Makefile（file）
-	│   ├── md5.a
-	│   │   └── test
-	│   │       └── Makefile（file）
-	│   ├── rsa
-	│   └── Syscall
-	├── 02-com
-	├── client
-	│   ├── 01-lib
-	│   ├── 02-com
-	│   ├── Module1
-	│   │   └── test
-	│   │       └── Makefile（file）
-	│   ├── Module2
-	│   │   └── test
-	│   │       └── Makefile（file）
-	│   └── Makefile（file）
-	├── server
-	│
-	├── build.mk（file）
-	└── Makefile（file）
-
-
-二、功能说明
-# 功能（配置好相关变量后方可具有自动功能）：
+# 功能说明（配置好相关变量后方可具有自动功能）：
 #     1、自动以makefile的父目录名为Target文件名称
 #     2、自动搜索源码(*.c/*.cpp)文件
 #     3、自动搜索有效头文件(*.h/*.hpp)目录
