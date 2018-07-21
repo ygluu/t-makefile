@@ -1,51 +1,38 @@
-auto makefile
+#Automatic makefile
 
-一、目录树：
-    ProjectName
+# 自动makefile作用域（示例）(Automatic makefile scope(demo)):
+
+ │───Project───│───Process───│───Module───│───Test───│
+
 	├── 01-lib
-	│   ├── crc.so
-	│   │   └── test
-	│   │       └── Makefile（file）
-	│   ├── md5.a
-	│   │   └── test
-	│   │       └── Makefile（file）
-	│   ├── rsa
-	│   └── Syscall
 	├── 02-com
-	├── client
-	│   ├── 01-lib
-	│   ├── 02-com
-	│   ├── Module1
-	│   │   └── test
-	│   │       └── Makefile（file）
-	│   ├── Module2
-	│   │   └── test
-	│   │       └── Makefile（file）
-	│   └── Makefile（file）
-	├── server
-	│
-	├── build.mk（file）
-	└── Makefile（file）
+	├── tcp-client
+	│     ├──────── 01-lib
+	│     ├──────── 02-inc
+	│     ├──────── Module1
+	│     ├──────── Module2
+	│     │            └────────── test
+	│     │                          └──────── Makefile(test)
+	│     └──────── Makefile(Process)
+	├── tcp-server
+	├── build.mk
+	└── Makefile
+
+ Makefile Scope：current directory(subdirectory) + upper common directory(subdirectory)
+ Process Makefile:
+ 		upper common directory = ../01-lib ../02-com
+ Test Makefile:
+       upper common directory = ../../01-lib ../../02-inc ../../../01-lib ../../../02-com
+ The setting of the upper common directory reference variable COMMON_DIR_NAMES
+
+ makefile的作用域是：当前目录及子其目录+上层公共目录及其子目录，
+ 公共目录的设置参考变量COMMON_DIR_NAMES的设置。
 
 
-二、目录说明
-本级目录为项目级的目录，拥有不同的进程目录。
-01-lib: 本级目录及子目录源码使用到的公共库（含头*.h/*.c/*.h）
-02-com: 本级目录及子目录（除lib外）各个进程间的接口文件（含头*.h/*.c/*.h）
-client：模拟的客户端源码
-server：模拟的服务端源码
-
-
-三、手动增加模块示例（设置TOP_MODULE_DIR_NAMES）：
-client/Module2/test/Makefile
-
-四、update-mf.sh文件
-update-mf.sh脚本文件是把当前的makefile文件替换子目录的makefile文件，
-使用时请注意他会覆盖子目录的makefile文件。
-
-
-五、build.mk文件
-build.mk文件内容可以独立成为一个makefile
-
-
+# 使用方法(usage)： 
+      1、make 					# 正常编译
+      2、make clean 			# 清除临时文件及TARGET文件
+      3、make INFO=1 			# 编译时打印详细信息
+      4、make INFO=2 			# 静默编译
+      5、make CROSS_COMPILE=... #交叉编译设置
 

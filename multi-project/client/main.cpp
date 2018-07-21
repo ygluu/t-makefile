@@ -19,7 +19,7 @@ int main()
 	std::cout << "is debug mod" << std::endl;
 	#endif
 	// 需要把so文件放在当前目前或者系统lib目录才能调用
-	//GetCRC();
+	GetCRC();
 	GetMD5();
 	GetRSA();
 
