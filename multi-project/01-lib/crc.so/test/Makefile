@@ -1,17 +1,44 @@
 ############################################################
-# Copyright ©2018
-# name: t-makefile auto makefile (ubuntu/gcc/g++）
-# author: freetoo(yigui-lu)
-# qq/wx: 48092788
-# e-mail: gcode@qq.com
-# help: https://blog.csdn.net/guestcode
+# Copyright ©2018 freetoo(yigui-lu)
+# name: t-makefile automatic makefile for ubuntu
+# qq/wx: 48092788    e-mail: gcode@qq.com
+# blog: https://blog.csdn.net/guestcode
 # download: https://github.com/freetoo/t-makefile
 # create: 2018-7-7
 ############################################################
 
+# 自动makefile作用域（示例）:
+# Automatic makefile scope(demo)：
+#
+# │───Project───│───Process───│───Module───│───Test───│
+#
+#	├── 01-lib
+#	├── 02-com
+#	├── tcp-client
+#	│     ├──────── 01-lib
+#	│     ├──────── 02-inc
+#	│     ├──────── Module1
+#	│     ├──────── Module2
+#	│     │            └────────── test
+#	│     │                          └──────── Makefile(test)
+#	│     └──────── Makefile(Process)
+#	├── tcp-server
+#	├── build.mk
+#	└── Makefile
+#
+# Makefile Scope：current directory(subdirectory) + upper common directory(subdirectory)
+# Process Makefile:
+# 		upper common directory = ../01-lib ../02-com
+# Test Makefile:
+#       upper common directory = ../../01-lib ../../02-inc ../../../01-lib ../../../02-com
+# The setting of the upper common directory reference variable COMMON_DIR_NAMES
+#
+# makefile的作用域是：当前目录及子其目录+上层公共目录及其子目录，
+# 公共目录的设置参考变量COMMON_DIR_NAMES的设置。
+
 # 名词解释：
-#   上层、向上：是指由makefile所在目录向根目录方向到build.mk文件
-#             所在的目录方向（和makefile所在目录有共同目录树分支的）。
+#   上层、向上：是指由makefile所在目录向系统根目录方向到build.mk文件
+#             所在的目录位置的若干层目录。
 
 ############################################################
 # 常用设置项
@@ -21,47 +48,48 @@
 #TARGET ?=
 TARGET ?=
 
-# 需要包含的上层模块目录名列表，但要确保目录名的唯一性
+# 要包含的上层模块目录名列表（在makefile作用域内）
+# 但要确保名称的唯一性，且为上层目录的一级目录名。
 #INCLUDE_MODULE_NAMES += ModuleName
 INCLUDE_MODULE_NAMES +=
 
-# 要排除的模块目录名列表，makefile会排除在搜索范围之外
+# 要排除的模块目录名列表（在makefile作用域内）
 #EXCLUDE_DIR_NAMES += ModuleName
 EXCLUDE_MODULE_NAMES +=
 
 ############################################################
-# 编译设置部分
+# 编译设置部分(Compile setup part)
 ############################################################
-# 设置调试编译选项
+# 设置调试编译选项(Setting the debug compilation options)
 #DEBUG ?= y
 DEBUG ?= y
 
-# 宏定义列表，用于代码条件编译，不需要前面加-D，makefile会自动补上-D
+# 宏定义列表(macro definition)，用于代码条件编译，不需要前面加-D，makefile会自动补上-D
 #DEFS ?= DEBUG WIN32 ...
 DEFS +=
 
-# C代码编译标志
+# C代码编译标志(C code compile flag)
 #CCFLAGS  ?= -Wall -Wfatal-errors -MMD
 CCFLAGS  ?= -Wall -Wfatal-errors -MMD
 
-# C++代码编译标志，注：最终CXXFLAGS += $(CCFLAGS)
+# C++代码编译标志(C++ code compile flag)，注：最终CXXFLAGS += $(CCFLAGS)()
 #CXXFLAGS ?= -std=c++11
 CXXFLAGS ?= -std=c++11
 
-# 编译静态库文件设置标志
+# 编译静态库文件设置标志(Compiling a static library file setting flag)
 #ARFLAGS ?= -cr
 ARFLAGS ?= -cr
 
-# 链接标志，默认纯动态链接模式
+# 链接标志，默认纯动态链接模式(Link flag, default pure dynamic link mode)
 # static  mode: DYMAMIC_LDFLAG ?=        STATIC_LDFLAGS ?=
 #               DYMAMIC_LDFLAG ?= ...    STATIC_LDFLAGS ?=
 # dynamic mode: DYMAMIC_LDFLAG ?=        STATIC_LDFLAGS ?= ... 
 # bland   mode: DYMAMIC_LDFLAG ?= ...    STATIC_LDFLAGS ?= ... 
 #
-# 动态链接标志
+# 动态链接标志(dynamic link flag)
 #DYMAMIC_LDFLAGS += -lrt -lpthread
 DYMAMIC_LDFLAGS += -lrt -lpthread
-# 静态链接标志
+# 静态链接标志(static link flag)
 #STATIC_LDFLAGS += -lrt -Wl,--whole-archive -lpthread -Wl,--no-whole-archive
 STATIC_LDFLAGS +=
 
