@@ -1,7 +1,5 @@
 <<<<<<< HEAD
-#Automatic makefile
-=======
-# Automatic makefile
+Automatic makefile
 >>>>>>> a79cae5df5d90458f560e523800bf54f05e992ea
 
 # Automatic makefile scope(demo):
