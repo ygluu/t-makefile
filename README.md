@@ -21,11 +21,11 @@
 
  Makefile Scope：current directory(subdirectory) + upper common directory(subdirectory)
  Process Makefile:
- 		upper common directory = ../01-lib ../02-com
+  		upper common directory = ../01-lib ../02-com
  Test Makefile:
-       upper common directory = ../../01-lib ../../02-inc ../../../01-lib ../../../02-com
+ 		upper common directory = ../../01-lib ../../02-inc ../../../01-lib ../../../02-com
  The setting of the upper common directory reference variable COMMON_DIR_NAMES
-
+ 
  makefile的作用域是：当前目录及子其目录+上层公共目录及其子目录，
  公共目录的设置参考变量COMMON_DIR_NAMES的设置。
 
