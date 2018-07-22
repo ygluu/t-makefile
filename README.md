@@ -1,5 +1,9 @@
 Automatic makefile
 ===========================
+	
+|Author|freetoo|
+|---|---
+|E-mail|gcode@qq.com
 
 cn-help: https://blog.csdn.net/guestcode/article/details/81151921
 
@@ -13,10 +17,6 @@ cn-help: https://blog.csdn.net/guestcode/article/details/81151921
 * The directory framework is set flexibly. The free mobile sub makefile in the framework still has automatic functions.
 * avoid link unrelated symbols (functions and variables) to avoid TARGET bloated volume.
 ****
-	
-|Author|freetoo|
-|---|---
-|E-mail|gcode@qq.com
 
 # 2.Automatic makefile scope(demo):
 ```
@@ -45,9 +45,9 @@ cn-help: https://blog.csdn.net/guestcode/article/details/81151921
 * The setting of the upper common directory reference variable COMMON_DIR_NAMES
 
 # 3.usage:
-*      1、make 				# 正常编译
-*      2、make clean 			# 清除临时文件及TARGET文件
-*      3、make INFO=1 			# 编译时打印详细信息
-*      4、make INFO=2 			# 静默编译
-*      5、make CROSS_COMPILE=...          #交叉编译设置
+*      1、make
+*      2、make clean
+*      3、make INFO=1 			# Detailed compilation of information
+*      4、make INFO=2 			# Silent mode
+*      5、make CROSS_COMPILE=...         # Cross compilation settings
 
