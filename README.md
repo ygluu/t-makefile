@@ -5,7 +5,7 @@ Automatic makefile
 |---|---
 |E-mail|gcode@qq.com
 
-cn-help: https://blog.csdn.net/guestcode/article/details/81151921
+[中文说明](https://blog.csdn.net/guestcode/article/details/81151921)
 
 # 1. Function Description:
 
