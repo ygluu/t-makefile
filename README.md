@@ -7,7 +7,7 @@ Automatic makefile
 
 cn-help: https://blog.csdn.net/guestcode/article/details/81151921
 
-# 1.Function Description:
+# 1. Function Description:
 
 * automatically search source code, header file, library file directory and form valid directory list and file list.
 * automatic identification of the total makefile function, batch execution of sub directory makefile.
@@ -18,7 +18,7 @@ cn-help: https://blog.csdn.net/guestcode/article/details/81151921
 * avoid link unrelated symbols (functions and variables) to avoid TARGET bloated volume.
 ****
 
-# 2.Automatic makefile scope(demo):
+# 2. Automatic makefile scope(demo):
 ```
  │───Project───│───Process───│───Module───│───Test───│
 
@@ -44,7 +44,7 @@ cn-help: https://blog.csdn.net/guestcode/article/details/81151921
 *          upper common directory = ../../01-lib ../../02-inc ../../../01-lib ../../../02-com
 * The setting of the upper common directory reference variable COMMON_DIR_NAMES
 
-# 3.usage:
+# 3. Usage:
 * make
 * make clean
 * make INFO=1                   # Detailed compilation of information
