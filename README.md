@@ -5,13 +5,13 @@ cn-help: https://blog.csdn.net/guestcode/article/details/81151921
 
 # 1.Function Description:
 
-    * automatically search source code, header file, library file directory and form valid directory list and file list.
-    * automatic identification of the total makefile function, batch execution of sub directory makefile.
-    * The name of the directory is automatically named TTARGET file name.
-    * Dynamic and static mixed links into TARGET files.
-    * you can set up the exclude directory, avoid search and compilation no source code.
-    * The directory framework is set flexibly. The free mobile sub makefile in the framework still has automatic functions.
-    * avoid link unrelated symbols (functions and variables) to avoid TARGET bloated volume.
+*       automatically search source code, header file, library file directory and form valid directory list and file list.
+*       automatic identification of the total makefile function, batch execution of sub directory makefile.
+*       The name of the directory is automatically named TTARGET file name.
+*       Dynamic and static mixed links into TARGET files.
+*       you can set up the exclude directory, avoid search and compilation no source code.
+*       The directory framework is set flexibly. The free mobile sub makefile in the framework still has automatic functions.
+*       avoid link unrelated symbols (functions and variables) to avoid TARGET bloated volume.
 ****
 	
 |Author|freetoo|
