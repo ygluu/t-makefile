@@ -44,7 +44,7 @@
 #
 # Makefile Scope：current directory(subdirectory) + upper common directory(subdirectory)
 # Process Makefile:
-# 		upper common directory = ../01-lib ../02-com
+#       upper common directory = ../01-lib ../02-com
 # Test Makefile:
 #       upper common directory = ../../01-lib ../../02-inc ../../../01-lib ../../../02-com
 # The setting of the upper common directory reference variable COMMON_DIR_NAMES

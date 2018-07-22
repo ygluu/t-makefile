@@ -1,0 +1,82 @@
+project
+©À©¤©¤ multi-project
+©¦   ©À©¤©¤ 01-lib
+©¦   ©¦   ©À©¤©¤ crc.so
+©¦   ©¦   ©¦   ©À©¤©¤ crc.c
+©¦   ©¦   ©¦   ©À©¤©¤ crc.h
+©¦   ©¦   ©¦   ©À©¤©¤ libarm-linux-gnueabihf-crc.so
+©¦   ©¦   ©¦   ©À©¤©¤ Makefile
+©¦   ©¦   ©¦   ©¸©¤©¤ test
+©¦   ©¦   ©¦       ©À©¤©¤ main.c
+©¦   ©¦   ©¦       ©¸©¤©¤ Makefile
+©¦   ©¦   ©À©¤©¤ md5.a
+©¦   ©¦   ©¦   ©À©¤©¤ libarm-linux-gnueabihf-md5.a
+©¦   ©¦   ©¦   ©À©¤©¤ Makefile
+©¦   ©¦   ©¦   ©À©¤©¤ md5.c
+©¦   ©¦   ©¦   ©À©¤©¤ md5.h
+©¦   ©¦   ©¦   ©¸©¤©¤ test
+©¦   ©¦   ©¦       ©À©¤©¤ main.c
+©¦   ©¦   ©¦       ©¸©¤©¤ Makefile
+©¦   ©¦   ©À©¤©¤ rsa
+©¦   ©¦   ©¦   ©À©¤©¤ rsa.c
+©¦   ©¦   ©¦   ©¸©¤©¤ rsa.h
+©¦   ©¦   ©¸©¤©¤ Syscall
+©¦   ©¦       ©¸©¤©¤ readme.txt
+©¦   ©À©¤©¤ 02-com
+©¦   ©¦   ©¸©¤©¤ Proto.h
+©¦   ©À©¤©¤ build.mk
+©¦   ©À©¤©¤ client
+©¦   ©¦   ©À©¤©¤ 01-lib
+©¦   ©¦   ©¦   ©¸©¤©¤ readme.txt
+©¦   ©¦   ©À©¤©¤ 02-com
+©¦   ©¦   ©¦   ©¸©¤©¤ Define.h
+©¦   ©¦   ©À©¤©¤ main.cpp
+©¦   ©¦   ©À©¤©¤ Makefile
+©¦   ©¦   ©À©¤©¤ Module1
+©¦   ©¦   ©¦   ©À©¤©¤ inc
+©¦   ©¦   ©¦   ©¦   ©¸©¤©¤ Module1.hpp
+©¦   ©¦   ©¦   ©À©¤©¤ src
+©¦   ©¦   ©¦   ©¦   ©¸©¤©¤ Module1.cpp
+©¦   ©¦   ©¦   ©¸©¤©¤ test
+©¦   ©¦   ©¦       ©À©¤©¤ main.cpp
+©¦   ©¦   ©¦       ©À©¤©¤ Makefile
+©¦   ©¦   ©¦       ©¸©¤©¤ TestAPI.cpp
+©¦   ©¦   ©À©¤©¤ Module2
+©¦   ©¦   ©¦   ©À©¤©¤ Module2.cpp
+©¦   ©¦   ©¦   ©À©¤©¤ Module2.hpp
+©¦   ©¦   ©¦   ©¸©¤©¤ test
+©¦   ©¦   ©¦       ©À©¤©¤ main.cpp
+©¦   ©¦   ©¦       ©¸©¤©¤ Makefile
+©¦   ©¦   ©¸©¤©¤ readme.txt
+©¦   ©À©¤©¤ Makefile
+©¦   ©À©¤©¤ readme.txt
+©¦   ©À©¤©¤ server
+©¦   ©¦   ©¸©¤©¤ readme.txt
+©¦   ©¸©¤©¤ update-mf.sh
+©À©¤©¤ README.md
+©¸©¤©¤ single-project
+    ©À©¤©¤ 01-lib
+    ©¦   ©À©¤©¤ crc
+    ©¦   ©¦   ©À©¤©¤ crc.c
+    ©¦   ©¦   ©¸©¤©¤ crc.h
+    ©¦   ©À©¤©¤ md5
+    ©¦   ©¦   ©À©¤©¤ md5.c
+    ©¦   ©¦   ©¸©¤©¤ md5.h
+    ©¦   ©À©¤©¤ rsa
+    ©¦   ©¦   ©À©¤©¤ rsa.c
+    ©¦   ©¦   ©¸©¤©¤ rsa.h
+    ©¦   ©¸©¤©¤ Syscall
+    ©¦       ©¸©¤©¤ readme.txt
+    ©À©¤©¤ 02-com
+    ©¦   ©À©¤©¤ Define.h
+    ©¦   ©¸©¤©¤ Proto.h
+    ©À©¤©¤ 03-inc
+    ©¦   ©À©¤©¤ Module1.hpp
+    ©¦   ©¸©¤©¤ Module2.hpp
+    ©À©¤©¤ main.cpp
+    ©À©¤©¤ Makefile
+    ©À©¤©¤ Module1
+    ©¦   ©¸©¤©¤ Module1.cpp
+    ©À©¤©¤ Module2
+    ©¦   ©¸©¤©¤ Module2.cpp
+    ©¸©¤©¤ readme.txt
