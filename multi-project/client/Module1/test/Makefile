@@ -1,11 +1,27 @@
 ############################################################
-# Copyright ©2018 freetoo(yigui-lu)
+# Copyleft ©2018 freetoo(yigui-lu)
 # name: t-makefile automatic makefile for ubuntu
 # qq/wx: 48092788    e-mail: gcode@qq.com
-# blog: https://blog.csdn.net/guestcode
+# cn-help: https://blog.csdn.net/guestcode/article/details/81151921
 # download: https://github.com/freetoo/t-makefile
 # create: 2018-7-7
 ############################################################
+
+# t-makefile功能说明：
+#     1、自动搜索源码、头文件、库文件目录并形成有效目录列表和文件列表
+#     2、自动识别总makefile功能，可批量执行子目录的makefile
+#     3、自动以目录名为TTARGET文件名
+#     4、可动态和静态混合链接成TARGET文件
+#     5、可设置排除目录，避免搜索编译无关源码
+#     6、目录框架灵活设定，框架内可自由移动子makefile仍具有自动功能
+#     7、可避免链接无关符号（函数和变量），避免TARGET体积臃肿
+
+# 使用方法（usage）： 
+#     1、make                             # 正常编译 
+#     2、make clean                       # 清除临时文件及TARGET文件 
+#     3、make INFO=1                      # 编译时打印详细信息 
+#     4、make INFO=2                      # 静默编译 
+#     5、make CROSS_COMPILE=...           #交叉编译设置
 
 # 自动makefile作用域（示例）:
 # Automatic makefile scope(demo)：
