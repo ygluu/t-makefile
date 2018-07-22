@@ -45,9 +45,9 @@ cn-help: https://blog.csdn.net/guestcode/article/details/81151921
 * The setting of the upper common directory reference variable COMMON_DIR_NAMES
 
 # 3.usage:
-*      1、make
-*      2、make clean
-*      3、make INFO=1 			# Detailed compilation of information
-*      4、make INFO=2 			# Silent mode
-*      5、make CROSS_COMPILE=...         # Cross compilation settings
+* make
+* make clean
+* make INFO=1                   # Detailed compilation of information
+* make INFO=2                   # Silent mode
+* make CROSS_COMPILE=...        # Cross compilation settings
 
