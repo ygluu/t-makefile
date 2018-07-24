@@ -73,6 +73,19 @@ INCLUDE_MODULE_NAMES +=
 #EXCLUDE_DIR_NAMES += ModuleName
 EXCLUDE_MODULE_NAMES +=
 
+# 可以手动配置变量LIB_DIRS、INC_DIRS和SRC_DIRS做补充
+# 注意：是全路径名(可以用PROJECT_ROOT_DIR作为前缀就不要担心移动
+#      makefile以后需要修改路径名了)，且makefile不会搜索它们的子目录
+# 库文件所在目录
+#LIB_DIRS += $(PROJECT_ROOT_DIR)/...
+LIB_DIRS +=
+# 头文件所在目录
+#INC_DIRS += $(PROJECT_ROOT_DIR)/...
+INC_DIRS +=
+# 源码文件所在目录
+#SRC_DIRS += $(PROJECT_ROOT_DIR)/...
+SRC_DIRS +=
+
 ############################################################
 # 编译设置部分(Compile setup part)
 ############################################################
@@ -104,10 +117,10 @@ ARFLAGS ?= -cr
 #
 # 动态链接标志(dynamic link flag)
 #DYMAMIC_LDFLAGS += -lrt -lpthread
-DYMAMIC_LDFLAGS += -lrt -lpthread
+DYMAMIC_LDFLAGS ?= -lrt -lpthread
 # 静态链接标志(static link flag)
 #STATIC_LDFLAGS += -lrt -Wl,--whole-archive -lpthread -Wl,--no-whole-archive
-STATIC_LDFLAGS +=
+STATIC_LDFLAGS ?=
 
 # 交叉编译设置，关联设置：CROSS_COMPILE_LIB_KEY
 #CROSS_COMPILE ?= arm-linux-gnueabihf-
@@ -137,14 +150,14 @@ TMP_DIR ?= tmp
 #					01-lib 01-inc 01-include 01-com 01-comment \
 #					02-lib 02-inc 02-include 02-com 02-comment \
 #					03-lib 03-inc 03-include 03-com 03-comment
-COMMON_DIR_NAMES += lib inc include com comment \
+COMMON_DIR_NAMES ?= lib inc include com comment \
 					01-lib 01-inc 01-include 01-com 01-comment \
 					02-lib 02-inc 02-include 02-com 02-comment \
 					03-lib 03-inc 03-include 03-com 03-comment
 
 # 要排除的目录名列表
 #EXCLUDE_DIR_NAMES += .git tmp temp doc docs
-EXCLUDE_DIR_NAMES += .git tmp temp doc docs
+EXCLUDE_DIR_NAMES ?= .git tmp temp doc docs
 
 ############################################################
 # TARGET设置后期处理及杂项设置
@@ -178,10 +191,14 @@ TMP_TARGET := $(TARGET)
 endif
 
 # 查找main文件
-MAIN_FILE := $(shell find $(CUR_DIR) -maxdepth 1 -type f -iname "main.c" -o -type f -iname "main.cpp")
+MAIN_FILE := $(shell find $(CUR_DIR) -maxdepth 1 -type f -iname 'main.c' -o -type f -iname 'main.cpp')
 # 无main文件也不是编译库文件，则认为是总makefile功能
 ifeq ($(MAIN_FILE)$(IS_LIB_TARGET),)
-TARGET := MAKE_SUB
+TARGET :=
+MAKE_SUB := y
+endif
+ifeq ($(ALL),y)
+MAKE_SUB := y
 endif
 
 # 编译信息显示设置，1：为全部显示，2：仅显示步骤项，其它：静默无显示
@@ -230,11 +247,11 @@ CCFLAGS += -ffunction-sections -fdata-sections
 DYMAMIC_LDFLAGS := $(strip $(DYMAMIC_LDFLAGS))
 STATIC_LDFLAGS := $(strip $(STATIC_LDFLAGS))
 ifeq ($(DYMAMIC_LDFLAGS)$(STATIC_LDFLAGS),$(DYMAMIC_LDFLAGS))
-# 纯静态链接模式
+# 纯动态链接模式
 #LDFLAGS ?= -Wl,--as-needed -lrt -lpthread $(DYNAMIC_LIB_FILES) $(STATIC_LIB_FILES)
 LDFLAGS ?= $(DYMAMIC_LDFLAGS) $(DYNAMIC_LIB_FILES) $(STATIC_LIB_FILES)
 else ifeq ($(DYMAMIC_LDFLAGS)$(STATIC_LDFLAGS),$(STATIC_LDFLAGS))
-# 纯动态链接模式
+# 纯静态链接模式
 #LDFLAGS ?= -static -lrt -Wl,--whole-archive -lpthread -Wl,--no-whole-archive $(STATIC_LIB_FILES)
 LDFLAGS ?= -static $(STATIC_LDFLAGS) $(STATIC_LIB_FILES)
 else
@@ -255,7 +272,7 @@ endif
 CXXFLAGS += $(CCFLAGS)
 
 # 检查编译so文件时，是否是错误设置为静态链接标志
-CHECK_LDFLAGS := $(if $(findstring static,$(LDFLAGS)),"Error: build file(*.so) not use static flag",)
+CHECK_LDFLAGS := $(if $(findstring static,$(LDFLAGS)),'Error: build file(*.so) not use static flag',)
 
 ############################################################
 # 文件和路径搜索部分（非常用项，修改需谨慎）
@@ -274,14 +291,14 @@ EXCLUDE_DIR_NAMES += $(TEST_DIR_NAME)
 EXCLUDE_DIR_NAMES := $(subst $(SPACE),\\\|,$(strip $(EXCLUDE_DIR_NAMES)))
 
 # 如果是总makefile
-ifeq ($(TARGET),MAKE_SUB)
+ifneq ($(MAKE_SUB),)
 # 执行make命令的makefile所在目录列表，不包含test目录
 MF_MAKE_DIRS := $(dir $(shell find . -type f -iname Makefile | grep -v $(EXCLUDE_DIR_NAMES)))
 MF_MAKE_DIRS := $(foreach dir,$(MF_MAKE_DIRS),$(shell if [ ! $(dir) = ./ ]; then echo $(dir); fi;))
-endif
 # 执行make clean命令的makefile所在目录列表，包含test目录
 MF_CLEAN_DIRS := $(dir $(shell find . -type f -iname Makefile | grep -v $(EXCLUDE_DIR_NAMES_NO_TEST)))
 MF_CLEAN_DIRS := $(foreach dir,$(MF_CLEAN_DIRS),$(shell if [ ! $(dir) = ./ ]; then echo $(dir); fi;))
+endif
 
 # 包含的模块目录名列表
 INCLUDE_MODULE_NAMES := $(subst $(SPACE),\\\|,$(strip $(INCLUDE_MODULE_NAMES)))
@@ -334,14 +351,15 @@ endif
 ALL_DIR := $(strip $(ALL_DIR))
 
 # 去掉没有.h的目录
-INC_DIRS := $(foreach dir,$(ALL_DIR),$(if $(shell find $(dir) -maxdepth 1 -type f -iname "*.h" -o -type f -iname "*.hpp"),$(dir),))
+INC_DIRS += $(foreach dir,$(ALL_DIR),$(if $(shell find $(dir) -maxdepth 1 -type f -iname '*.h' -o -type f -iname '*.hpp'),$(dir),))
 INC_DIRS := $(INC_DIRS:%=-I%)
 
 # 源文件目录及obj文件列表
-SRC_DIRS := $(foreach dir,$(ALL_DIR),$(if $(suffix $(dir)),$(shell if [ $(CUR_DIR) = $(dir) ]; then echo $(dir); fi;),$(dir)))
-SRC_DIRS := $(foreach dir,$(SRC_DIRS),$(if $(shell if [ ! $(CUR_DIR) = $(dir) ]; then find $(dir) -maxdepth 1 -type f -iname "*.a" -o -type f -iname "*.so"; fi;),,$(dir)))
-SRC_DIRS := $(foreach dir,$(SRC_DIRS),$(if $(shell find $(dir) -maxdepth 1 -type f -iname "*.c" -o -type f -iname "*.cpp" | grep -v "main.c" | grep -v "main.cpp"),$(dir),))
-OBJ_FILES := $(shell find $(SRC_DIRS) -maxdepth 1 -type f -iname "*.c" -o -type f -iname "*.cpp" | grep -v "main.c" | grep -v "main.cpp")
+SRC_DIRS += $(foreach dir,$(ALL_DIR),$(if $(suffix $(dir)),$(shell if [ $(CUR_DIR) = $(dir) ]; then echo $(dir); fi;),$(dir)))
+SRC_DIRS := $(strip $(SRC_DIRS))
+SRC_DIRS := $(foreach dir,$(SRC_DIRS),$(if $(shell if [ ! $(CUR_DIR) = $(dir) ]; then find $(dir) -maxdepth 1 -type f -iname '*.a' -o -type f -iname '*.so'; fi;),,$(dir)))
+SRC_DIRS := $(foreach dir,$(SRC_DIRS),$(if $(shell find $(dir) -maxdepth 1 -type f -iname '*.c' -o -type f -iname '*.cpp' | grep -v 'main.c' | grep -v 'main.cpp'),$(dir),))
+OBJ_FILES := $(shell find $(SRC_DIRS) -maxdepth 1 -type f -iname '*.c' -o -type f -iname '*.cpp' | grep -v 'main.c' | grep -v 'main.cpp')
 TMP_DIR := $(TMP_DIR)/
 OBJ_FILES := $(OBJ_FILES:%.c=$(TMP_DIR)%.o)
 OBJ_FILES := $(OBJ_FILES:%.cpp=$(TMP_DIR)%.o)
@@ -349,18 +367,19 @@ MAIN_FILE := $(MAIN_FILE:%.c=$(TMP_DIR)%.o)
 MAIN_FILE := $(MAIN_FILE:%.cpp=$(TMP_DIR)%.o)
 
 # 库文件目录
-LIB_DIRS := $(foreach dir,$(ALL_DIR),$(if $(shell if [ ! $(CUR_DIR) = $(dir) ]; then find $(dir) -maxdepth 1 -type f -iname "*.a" -o -type f -iname "*.so"; fi;),$(dir),))
+LIB_DIRS += $(foreach dir,$(ALL_DIR),$(if $(shell if [ ! $(CUR_DIR) = $(dir) ]; then find $(dir) -maxdepth 1 -type f -iname '*.a' -o -type f -iname '*.so'; fi;),$(dir),))
+LIB_DIRS := $(strip $(LIB_DIRS))
 # 加载so库文件的路径
-LOAD_LIB_PATH := $(foreach dir,$(LIB_DIRS),$(if $(shell if [ ! $(CUR_DIR) = $(dir) ]; then find $(dir) -maxdepth 1 -type f -iname "*.so"; fi;),$(dir),))
+LOAD_LIB_PATH := $(foreach dir,$(LIB_DIRS),$(if $(shell if [ ! $(CUR_DIR) = $(dir) ]; then find $(dir) -maxdepth 1 -type f -iname '*.so'; fi;),$(dir),))
 LOAD_LIB_PATH := $(subst $(SPACE),：,$(strip $(LOAD_LIB_PATH)))
 
 # 静态库文件列表
-STATIC_LIB_FILES := $(notdir $(shell find $(LIB_DIRS) -maxdepth 1 -type f -iname "*.a"))
+STATIC_LIB_FILES := $(notdir $(shell find $(LIB_DIRS) -maxdepth 1 -type f -iname '*.a'))
 # 如果是交叉编译，则使用交叉编译链的库文件并排除同名的非交叉编译链的库文件
 ifneq ($(CROSS_COMPILE),)
-tmp := $(notdir $(shell find $(LIB_DIRS) -maxdepth 1 -type f -iname "lib"$(CROSS_COMPILE_LIB_KEY)"*.a"))
-tmp := $(tmp:lib$(CROSS_COMPILE_LIB_KEY)%.a=lib%.a)
-STATIC_LIB_FILES := $(foreach name1,$(STATIC_LIB_FILES),$(if $(foreach name2,$(tmp),$(shell if [ $(name1) = $(name2) ]; then echo $(name1);fi;)),,$(name1)))
+tmp := $(notdir $(shell find $(LIB_DIRS) -maxdepth 1 -type f -iname 'lib'$(CROSS_COMPILE_LIB_KEY)'*.a'))
+tmp := $(subst $(CROSS_COMPILE_LIB_KEY),,$(tmp))
+STATIC_LIB_FILES := $(foreach name,$(STATIC_LIB_FILES),$(if $(findstring $(CROSS_COMPILE_LIB_KEY),$(tmp)),,$(name)))
 else
 # 不是交叉编译链，排除交叉编译链的库文件
 STATIC_LIB_FILES := $(foreach name,$(STATIC_LIB_FILES),$(if $(findstring $(CROSS_COMPILE_LIB_KEY),$(name)),,$(name)))
@@ -368,12 +387,12 @@ endif
 STATIC_LIB_FILES := $(STATIC_LIB_FILES:lib%.a=-l%)
 
 # 动态库文件列表
-DYNAMIC_LIB_FILES := $(notdir $(shell find $(LIB_DIRS) -maxdepth 1 -type f -iname "*.so"))
+DYNAMIC_LIB_FILES := $(notdir $(shell find $(LIB_DIRS) -maxdepth 1 -type f -iname '*.so'))
 # 如果是交叉编译，则使用交叉编译链的库文件并排除同名的非交叉编译链的库文件
 ifneq ($(CROSS_COMPILE),)
-tmp := $(notdir $(shell find $(LIB_DIRS) -maxdepth 1 -type f -iname "lib"$(CROSS_COMPILE_LIB_KEY)"*.so"))
-tmp := $(tmp:lib$(CROSS_COMPILE_LIB_KEY)%.so=lib%.so)
-DYNAMIC_LIB_FILES := $(foreach name1,$(DYNAMIC_LIB_FILES),$(if $(foreach name2,$(tmp),$(shell if [ $(name1) = $(name2) ]; then echo $(name1);fi;)),,$(name1)))
+tmp := $(notdir $(shell find $(LIB_DIRS) -maxdepth 1 -type f -iname 'lib'$(CROSS_COMPILE_LIB_KEY)'*.so'))
+tmp := $(subst $(CROSS_COMPILE_LIB_KEY),,$(tmp))
+DYNAMIC_LIB_FILES := $(foreach name,$(DYNAMIC_LIB_FILES),$(if $(findstring $(CROSS_COMPILE_LIB_KEY),$(tmp)),,$(name)))
 else
 # 不是交叉编译链，排除交叉编译链的库文件
 DYNAMIC_LIB_FILES := $(foreach name,$(DYNAMIC_LIB_FILES),$(if $(findstring $(CROSS_COMPILE_LIB_KEY),$(name)),,$(name)))
@@ -384,7 +403,10 @@ LIB_DIRS := $(LIB_DIRS:%=-L%)
 #LIB_FILES += $(STATIC_LIB_FILES)
 
 # *.c/*/cpp文件搜索的目录，用于编译设置
-VPATH := $(SRC_DIRS)
+#VPATH := $(SRC_DIRS)
+
+TMP_LIB_TARGET := libtmp.a
+TMP_LDFLAGS := -L$(TMP_DIR) $(TMP_LIB_TARGET:lib%.a=-l%)
 
 ############################################################
 # 链接成最终文件
@@ -393,53 +415,58 @@ all: FIRST_EXEC $(TARGET)
 
 FIRST_EXEC:
 ifdef DEB
-	@echo "TARGET:"$(TARGET)
-	@echo "TMP_TARGET:"$(TMP_TARGET)
-	@echo "CUR_DIR:"$(CUR_DIR)
-	@echo "CUR_DIR_NAME:"$(CUR_DIR_NAME)	
-	@echo "PROJECT_ROOT_DIR:"$(PROJECT_ROOT_DIR)
-	@echo "COMMON_DIR_NAMES:"$(COMMON_DIR_NAMES)
-	@echo "INCLUDE_MODULE_NAMES:"$(INCLUDE_MODULE_NAMES)
-	@echo "EXCLUDE_DIR_NAMES:"$(EXCLUDE_DIR_NAMES)
-	@echo "ALL_DIR:"$(ALL_DIR)
-	@echo "LIB_DIRS:"$(LIB_DIRS)
-	@echo "STATIC_LIB_FILES:"$(STATIC_LIB_FILES)
-	@echo "DYNAMIC_LIB_FILES:"$(DYNAMIC_LIB_FILES)
-	@echo "SRC_DIRS:"$(SRC_DIRS)
-	@echo "INC_DIRS:"$(INC_DIRS)
-	@echo "OBJ_FILES:"$(OBJ_FILES)
+	@echo 'TARGET:'$(TARGET)
+	@echo 'TMP_TARGET:'$(TMP_TARGET)
+	@echo 'CUR_DIR:'$(CUR_DIR)
+	@echo 'CUR_DIR_NAME:'$(CUR_DIR_NAME)	
+	@echo 'PROJECT_ROOT_DIR:'$(PROJECT_ROOT_DIR)
+	@echo 'COMMON_DIR_NAMES:'$(COMMON_DIR_NAMES)
+	@echo 'INCLUDE_MODULE_NAMES:'$(INCLUDE_MODULE_NAMES)
+	@echo 'EXCLUDE_DIR_NAMES:'$(EXCLUDE_DIR_NAMES)
+	@echo 'ALL_DIR:'$(ALL_DIR)
+	@echo 'LIB_DIRS:'$(LIB_DIRS)
+	@echo 'STATIC_LIB_FILES:'$(STATIC_LIB_FILES)
+	@echo 'DYNAMIC_LIB_FILES:'$(DYNAMIC_LIB_FILES)
+	@echo 'SRC_DIRS:'$(SRC_DIRS)
+	@echo 'INC_DIRS:'$(INC_DIRS)
+	@echo 'OBJ_FILES:'$(OBJ_FILES)
 	@echo
 endif
-#@if [ $(TMP_DIR) ]; then $(MKDIR) $(TMP_DIR); fi;
-
 #*********************************************
 # 总makefile模式，编译子目录下的所有makefile
-MAKE_SUB:
-	@$(STEP_INFO) "[step] submakefile is making..."
+ifneq ($(MF_MAKE_DIRS),)
+	@$(STEP_INFO) '[step]****** submakefile is making...'
 	@for dir in $(MF_MAKE_DIRS); do $(MAKE) -C $$dir; done;
-	@$(STEP_INFO) "[step] submakefile make done"
+	@$(STEP_INFO) '[step]****** submakefile make done'
+endif
 
 #*********************************************
 # 生成exec程序
-$(TMP_TARGET): $(MAIN_FILE) $(OBJ_FILES)
-	@$(STEP_INFO) "[step] Building exec file: "$@
-	$(BUILD_INFO)$(LD) -o $@ $^ $(LIB_DIRS) $(LDFLAGS)
+$(TMP_TARGET): $(TMP_DIR)$(TMP_LIB_TARGET) $(MAIN_FILE)
+	@$(STEP_INFO) '[step]****** Building exec file: '$@
+	$(BUILD_INFO)$(LD) -o $@ $^ $(TMP_LDFLAGS) $(LIB_DIRS) $(LDFLAGS)
 ifneq ($(LOAD_LIB_PATH),)
-	@echo "**********************************************************"
-	@echo "Please execute the following command to load the LIB(.so) path:"
-	@echo "LD_LIBRARY_PATH=$(LOAD_LIB_PATH) && export LD_LIBRARY_PATH"
+	@echo '**********************************************************'
+	@echo 'Please execute the following command to load the LIB(.so) path:'
+	@echo 'LD_LIBRARY_PATH=$(LOAD_LIB_PATH) && export LD_LIBRARY_PATH'
 endif
+
+#*********************************************
+# 生成临时静态库文件
+$(TMP_DIR)$(TMP_LIB_TARGET): $(OBJ_FILES)
+	@$(STEP_INFO) '[step]****** Building temp static lib file: '$@
+	$(BUILD_INFO)$(AR) $(ARFLAGS) -o $@ $^
 
 #*********************************************
 # 生成静态库文件
 $(TMP_TARGET).a: $(OBJ_FILES)
-	@$(STEP_INFO) "[step] Building static lib file: "$@
+	@$(STEP_INFO) '[step]****** Building static lib file: '$@
 	$(BUILD_INFO)$(AR) $(ARFLAGS) -o $@ $^
 
 #*********************************************
 # 生成动态库文件
 $(TMP_TARGET).so: $(OBJ_FILES)
-	@$(STEP_INFO) "[step] Building dynamic lib file: "$@
+	@$(STEP_INFO) '[step]****** Building dynamic lib file: '$@
 ifneq ($(CHECK_LDFLAGS),)
 	@echo $(CHECK_LDFLAGS)
 endif
@@ -448,14 +475,14 @@ endif
 #*********************************************
 # 编译c代码文件
 $(TMP_DIR)%.o: %.c
-	@$(STEP_INFO) "[step] Compiling c file: "$<
+	@$(STEP_INFO) '[step]****** Compiling c file: '$<
 	@$(MKDIR) $(dir $@)
 	$(BUILD_INFO)$(CC) $(CCFLAGS) -c $< -o $@ $(INC_DIRS)
 
 #*********************************************
 # 编译c++代码文件
 $(TMP_DIR)%.o: %.cpp
-	@$(STEP_INFO) "[step] Compiling cpp file: "$<
+	@$(STEP_INFO) '[step]****** Compiling cpp file: '$<
 	@$(MKDIR) $(dir $@)
 	$(BUILD_INFO)$(CXX) $(CXXFLAGS) -c $< -o $@ $(INC_DIRS)
 
@@ -466,18 +493,19 @@ $(TMP_DIR)%.o: %.cpp
 ############################################################
 # 清理临时文件
 ############################################################
-clean: FIRST_EXEC
+clean:
 ifneq ($(MF_CLEAN_DIRS),)
 # 总makefile模式
-	@$(STEP_INFO) "[step] submakefile cleaning..."
+	@$(STEP_INFO) '[step]****** submakefile cleaning...'
 	@for dir in $(MF_CLEAN_DIRS); do $(MAKE) -C $$dir clean; done;
-	@$(STEP_INFO) "[step] submakefile cleaned"
+	@$(STEP_INFO) '[step]****** submakefile cleaned'
 endif
 #*********************************************
 # 子makefile模式，删除临时目录
 	@if [ -d $(TMP_DIR) ]; then $(RM) -r $(TMP_DIR); fi;
 	@if [ -f $(TARGET) ]; then $(RM) -f $(TARGET); fi;
-	@echo "[step] cleaned"
+	@echo '[step]****** cleaned'
 
 .PHONY: all clean
+
 

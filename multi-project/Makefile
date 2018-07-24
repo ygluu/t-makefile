@@ -44,7 +44,7 @@
 #
 # Makefile Scope：current directory(subdirectory) + upper common directory(subdirectory)
 # Process Makefile:
-#       upper common directory = ../01-lib ../02-com
+# 		upper common directory = ../01-lib ../02-com
 # Test Makefile:
 #       upper common directory = ../../01-lib ../../02-inc ../../../01-lib ../../../02-com
 # The setting of the upper common directory reference variable COMMON_DIR_NAMES
@@ -72,6 +72,19 @@ INCLUDE_MODULE_NAMES +=
 # 要排除的模块目录名列表（在makefile作用域内）
 #EXCLUDE_DIR_NAMES += ModuleName
 EXCLUDE_MODULE_NAMES +=
+
+# 可以手动配置变量LIB_DIRS、INC_DIRS和SRC_DIRS做补充
+# 注意：是全路径名(可以用PROJECT_ROOT_DIR作为前缀就不要担心移动
+#      makefile以后需要修改路径名了)，且makefile不会搜索它们的子目录
+# 库文件所在目录
+#LIB_DIRS += $(PROJECT_ROOT_DIR)/...
+LIB_DIRS +=
+# 头文件所在目录
+#INC_DIRS += $(PROJECT_ROOT_DIR)/...
+INC_DIRS +=
+# 源码文件所在目录
+#SRC_DIRS += $(PROJECT_ROOT_DIR)/...
+SRC_DIRS +=
 
 ############################################################
 # 编译设置部分(Compile setup part)
@@ -104,10 +117,10 @@ ARFLAGS ?= -cr
 #
 # 动态链接标志(dynamic link flag)
 #DYMAMIC_LDFLAGS += -lrt -lpthread
-DYMAMIC_LDFLAGS += -lrt -lpthread
+DYMAMIC_LDFLAGS ?= -lrt -lpthread
 # 静态链接标志(static link flag)
 #STATIC_LDFLAGS += -lrt -Wl,--whole-archive -lpthread -Wl,--no-whole-archive
-STATIC_LDFLAGS +=
+STATIC_LDFLAGS ?=
 
 # 交叉编译设置，关联设置：CROSS_COMPILE_LIB_KEY
 #CROSS_COMPILE ?= arm-linux-gnueabihf-
