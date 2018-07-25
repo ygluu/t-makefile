@@ -66,10 +66,14 @@ TARGET ?=
 
 # 要包含的上层模块目录名列表（在makefile作用域内）
 # 但要确保名称的唯一性，且为上层目录的一级目录名。
+# 对于要包含的模块，makefile会为其增加宏定义用于条件编译：
+#     INC_MODULENAME
 #INCLUDE_MODULE_NAMES += ModuleName
 INCLUDE_MODULE_NAMES +=
 
 # 要排除的模块目录名列表（在makefile作用域内）
+# 对于要排除的模块，makefile会为其增加宏定义用于条件编译：
+#     EXC_MODULENAME
 #EXCLUDE_DIR_NAMES += ModuleName
 EXCLUDE_MODULE_NAMES +=
 
@@ -155,9 +159,15 @@ COMMON_DIR_NAMES ?= lib inc include com comment \
 					02-lib 02-inc 02-include 02-com 02-comment \
 					03-lib 03-inc 03-include 03-com 03-comment
 
-# 要排除的目录名列表
-#EXCLUDE_DIR_NAMES += .git tmp temp doc docs
-EXCLUDE_DIR_NAMES ?= .git tmp temp doc docs
+# 头文件目录名列表，INC_DIR_NAMES是COMMON_DIR_NAMES的子集，一旦设置了本变量，
+# makefile只将其及其子目录加入编译参数-I中，用在接口头文件集中管理的软件项目。
+# 如果不设置，makefile会自动搜含有头文件的目录加入编译参数-I中
+#INC_DIR_NAMES += inc include 01-inc 01-include 02-inc 02-include 03-inc 03-include
+INC_DIR_NAMES ?=
+
+# 要排除的目录名列表，比如文档目录、备份目录等
+#EXCLUDE_DIR_NAMES += .git tmp temp doc docs bak
+EXCLUDE_DIR_NAMES ?= .git tmp temp doc docs bak
 
 ############################################################
 # TARGET设置后期处理及杂项设置
@@ -232,6 +242,9 @@ LD := $(CXX)
 else
 LD := $(CC)
 endif
+
+DEFS += $(INCLUDE_MODULE_NAMES:%=INC_%)
+DEFS += $(EXCLUDE_MODULE_NAMES:%=EXC_%)
 
 CCFLAGS += $(DEFS:%=-D%)
 ifeq ($(DEBUG), y)
@@ -324,20 +337,27 @@ PROJECT_ROOT_DIR ?= $(shell result=$(CUR_DIR); \
 # 向上搜索COMMON_DIR_NAMES指定名称的目录，库文件编译除外
 ifeq ($(IS_LIB_TARGET),)
 tmp := $(strip $(subst /, ,$(subst $(PROJECT_ROOT_DIR),,$(SRC_DIR))))
-COMMON_DIR_NAMES := $(shell Dirs=$(PROJECT_ROOT_DIR); \
+UPPER_DIRS := $(shell Dirs=$(PROJECT_ROOT_DIR); \
+						echo $$Dirs; \
 						for dir in $(tmp); \
+						do \
+							Dirs=$$Dirs/$$dir; \
+							echo $$Dirs; \
+						done; \
+					)
+COMMON_DIRS := $(shell \
+						for dir in $(UPPER_DIRS); \
 						do \
 							for name in $(COMMON_DIR_NAMES); \
 							do \
-								if [ -d $$Dirs/$$name ];then \
-									echo $$Dirs/$$name; \
+								if [ -d $$dir/$$name ];then \
+									echo $$dir/$$name; \
 								fi; \
 							done; \
-							Dirs=$$Dirs/$$dir; \
 						done; \
 					)
-ifneq ($(COMMON_DIR_NAMES),)
-ALL_DIR := $(shell find $(COMMON_DIR_NAMES) -type d | grep -v $(SRC_DIR) | grep -v $(EXCLUDE_DIR_NAMES))
+ifneq ($(COMMON_DIRS),)
+ALL_DIR := $(shell find $(COMMON_DIRS) -type d | grep -v $(SRC_DIR) | grep -v $(EXCLUDE_DIR_NAMES))
 endif
 endif
 
@@ -350,8 +370,27 @@ ALL_DIR += $(shell find $(CUR_DIR) -type d | grep -v $(EXCLUDE_DIR_NAMES_NO_TEST
 endif
 ALL_DIR := $(strip $(ALL_DIR))
 
+tmp :=
+ifneq ($(INC_DIR_NAMES),)
+INC_DIRS += $(shell for dir in $(UPPER_DIRS); \
+				do \
+					for name in $(INC_DIR_NAMES); \
+					do \
+						if [ -d $$dir/$$name ];then \
+							find $$dir/$$name -type d | grep -v $(EXCLUDE_DIR_NAMES); \
+						fi; \
+					done; \
+				done; \
+		)
+tmp := $(foreach name,$(INC_DIR_NAMES), $(shell find $(SRC_DIR) -type d -iname $(name)))
+ifneq ($(tmp),)
+INC_DIRS += $(shell find $(tmp) -type d | grep -v $(EXCLUDE_DIR_NAMES))
+endif
+else
+INC_DIRS += $(ALL_DIR)
+endif
 # 去掉没有.h的目录
-INC_DIRS += $(foreach dir,$(ALL_DIR),$(if $(shell find $(dir) -maxdepth 1 -type f -iname '*.h' -o -type f -iname '*.hpp'),$(dir),))
+INC_DIRS := $(foreach dir,$(INC_DIRS),$(if $(shell find $(dir) -maxdepth 1 -type f -iname '*.h' -o -type f -iname '*.hpp'),$(dir),))
 INC_DIRS := $(INC_DIRS:%=-I%)
 
 # 源文件目录及obj文件列表
@@ -420,7 +459,8 @@ ifdef DEB
 	@echo 'CUR_DIR:'$(CUR_DIR)
 	@echo 'CUR_DIR_NAME:'$(CUR_DIR_NAME)	
 	@echo 'PROJECT_ROOT_DIR:'$(PROJECT_ROOT_DIR)
-	@echo 'COMMON_DIR_NAMES:'$(COMMON_DIR_NAMES)
+	@echo 'UPPER_DIRS:'$(UPPER_DIRS)
+	@echo 'COMMON_DIRS:'$(COMMON_DIRS)
 	@echo 'INCLUDE_MODULE_NAMES:'$(INCLUDE_MODULE_NAMES)
 	@echo 'EXCLUDE_DIR_NAMES:'$(EXCLUDE_DIR_NAMES)
 	@echo 'ALL_DIR:'$(ALL_DIR)
