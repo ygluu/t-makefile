@@ -150,7 +150,6 @@ PROJECT_ROOT_DIR ?= $(shell result=$(CUR_DIR); \
 								dirs=$$dirs/$$dir; \
 								if [ -f $$dirs/build.mk ]; then \
 									result=$$dirs; \
-									break; \
 								fi; \
 							done; \
 							echo $$result; \
