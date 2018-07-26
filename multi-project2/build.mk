@@ -21,7 +21,8 @@
 #     2、make clean                       # 清除临时文件及TARGET文件 
 #     3、make INFO=1                      # 编译时打印详细信息 
 #     4、make INFO=2                      # 静默编译 
-#     5、make CROSS_COMPILE=...           #交叉编译设置
+#     5、make CROSS_COMPILE=...           # 交叉编译设置
+#     6、make [clean] ALL=y               # 执行本目录和子目录的makefile
 
 # 自动makefile作用域（示例）:
 # Automatic makefile scope(demo)：
@@ -66,14 +67,12 @@ TARGET ?=
 
 # 要包含的上层模块目录名列表（在makefile作用域内）
 # 但要确保名称的唯一性，且为上层目录的一级目录名。
-# 对于要包含的模块，makefile会为其增加宏定义用于条件编译：
-#     INC_ModuleName
+# 对于要包含的模块，makefile会为其增加宏定义用于条件编译：INC_MODULENAME
 #INCLUDE_MODULE_NAMES += ModuleName
 INCLUDE_MODULE_NAMES +=
 
 # 要排除的模块目录名列表（在makefile作用域内）
-# 对于要排除的模块，makefile会为其增加宏定义用于条件编译：
-#     EXC_ModuleName
+# 对于要排除的模块，makefile会为其增加宏定义用于条件编译：EXC_MODULENAME
 #EXCLUDE_DIR_NAMES += ModuleName
 EXCLUDE_MODULE_NAMES +=
 

@@ -66,14 +66,12 @@ TARGET ?=
 
 # 要包含的上层模块目录名列表（在makefile作用域内）
 # 但要确保名称的唯一性，且为上层目录的一级目录名。
-# 对于要包含的模块，makefile会为其增加宏定义用于条件编译：
-#     INC_ModuleName
+# 对于要包含的模块，makefile会为其增加宏定义用于条件编译：INC_MODULENAME
 #INCLUDE_MODULE_NAMES += ModuleName
 INCLUDE_MODULE_NAMES +=
 
 # 要排除的模块目录名列表（在makefile作用域内）
-# 对于要排除的模块，makefile会为其增加宏定义用于条件编译：
-#     EXC_ModuleName
+# 对于要排除的模块，makefile会为其增加宏定义用于条件编译：EXC_MODULENAME
 #EXCLUDE_DIR_NAMES += ModuleName
 EXCLUDE_MODULE_NAMES +=
 
