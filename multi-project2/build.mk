@@ -162,7 +162,7 @@ COMMON_DIR_NAMES ?= lib inc include com comment \
 # 头文件目录名列表，一旦设置了本变量，makefile只将其及其子目录加入编译参数-I中.
 # 如果不设置，makefile会自动搜含有头文件的目录加入编译参数-I中
 #INC_DIR_NAMES ?= inc include 01-inc 01-include 02-inc 02-include 03-inc 03-include
-INC_DIR_NAMES ?=
+INC_DIR_NAMES ?= inc include 01-inc 01-include 02-inc 02-include 03-inc 03-include
 
 # 要排除的目录名列表，比如文档目录、备份目录等
 #EXCLUDE_DIR_NAMES += .git tmp temp doc docs bak
