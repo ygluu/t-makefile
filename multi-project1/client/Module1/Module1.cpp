@@ -1,7 +1,6 @@
 #include <string>
 
 #include "Module1.hpp"
-#include "Module2.hpp"
 
 namespace Module1
 {
