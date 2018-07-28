@@ -5,15 +5,12 @@
 client：模拟的客户端源码
 server：模拟的服务端源码
 
-二、手动增加模块示例（设置变量INCLUDE_MODULE_NAMES）：
-client/Module2/test/Makefile
-
-四、update-mf.sh文件
+二、update-mf.sh文件
 update-mf.sh脚本文件是把当前的makefile文件替换子目录的makefile文件，
 使用时请注意他会覆盖子目录的makefile文件。
 
 
-五、build.mk文件
+三、build.mk文件
 build.mk文件内容可以独立成为一个makefile
 
 

@@ -156,7 +156,7 @@ INC_DIR_NAMES ?=
 EXCLUDE_DIR_NAMES ?= .git tmp temp doc docs bak
 
 ############################################################
-# TARGET设置后期处理及杂项设置
+# TARGET后置处理及杂项设置
 ############################################################
 # makefile所在目录的全路径名称
 CUR_DIR ?= $(shell pwd)
@@ -172,16 +172,21 @@ endif
 
 # 如果没有手动设置TARGET，则设置为makefile所在的目录名称
 ifeq ($(TARGET),)
-TARGET := $(notdir $(SRC_DIR))
+TARGET := $(basename $(notdir $(SRC_DIR)))
+ifeq ($(CUR_DIR_NAME),$(TEST_DIR_NAME))
+TARGET := $(TARGET)_$(TEST_DIR_NAME)
+endif
 endif
 
 # 是编译exec文件还是库文件
 IS_LIB_TARGET := $(suffix $(TARGET))
+# 目标文件是库文件？
 ifneq ($(IS_LIB_TARGET),)
 IS_LIB_TARGET := $(shell if [ $(IS_LIB_TARGET) = .a ] || [ $(IS_LIB_TARGET) = .so ]; then echo y; fi;)
 endif
 
 ifeq ($(IS_LIB_TARGET),y)
+# 补充lib前缀
 TARGET := $(if $(findstring lib,$(TARGET)),$(TARGET),lib$(TARGET))
 TMP_TARGET := $(basename $(TARGET))
 else
@@ -195,6 +200,7 @@ ifeq ($(MAIN_FILE)$(IS_LIB_TARGET),)
 TARGET :=
 MAKE_SUB := y
 endif
+# 入口参数ALL表示手动设置总makefile功能
 ifeq ($(ALL),y)
 MAKE_SUB := y
 endif
@@ -217,13 +223,16 @@ MKDIR   := mkdir -p
 MAKE    := make
 
 ############################################################
-# 编译定义项及编译设置项的后期处理（非常用项，修改需谨慎）
+# 编译定义项及编译设置项的后置处理（非常用项，修改需谨慎）
 ############################################################
 
 # c/c++编译器名称，默认为gcc，有cpp文件则被自动改为g++
 CC  := $(CROSS_COMPILE)gcc
 CXX := $(CROSS_COMPILE)g++
 AR  := $(CROSS_COMPILE)ar
+CC  := gcc
+CXX := g++
+AR  := ar
 # 默认链接器是gcc，如果有cpp文件makefile会自动设置为g++
 ifeq ($(suffix $(MAIN_FILE)),.cpp)
 LD := $(CXX)
@@ -231,13 +240,17 @@ else
 LD := $(CC)
 endif
 
-tmp := $(DEFS)
-DEFS := $(shell echo $(INCLUDE_MODULE_NAMES) | tr '[a-z]' '[A-Z]')
-tmp += $(DEFS:%=INC_%)
-DEFS := $(shell echo $(EXCLUDE_MODULE_NAMES) | tr '[a-z]' '[A-Z]')
-DEFS := $(tmp) $(DEFS:%=EXC_%)
+# 宏定义列表
+# 转大写，+INC前缀
+tmp := $(shell echo $(INCLUDE_MODULE_NAMES) | tr '[a-z]' '[A-Z]')
+DEFS := $(DEFS) $(tmp:%=INC_%)
+# 转大写，+EXC前缀
+tmp := $(shell echo $(EXCLUDE_MODULE_NAMES) | tr '[a-z]' '[A-Z]')
+DEFS := $(DEFS) $(tmp:%=EXC_%)
+DEFS := $(DEFS:%=-D%)
 
-CCFLAGS += $(DEFS:%=-D%)
+# C代码编译设置标志
+CCFLAGS += $(DEFS)
 ifeq ($(DEBUG), y)
 CCFLAGS += -ggdb -rdynamic -g
 else
@@ -324,7 +337,7 @@ PROJECT_ROOT_DIR ?= $(shell result=$(CUR_DIR); \
 							echo $$result; \
 					)
 
-# 向上搜索COMMON_DIR_NAMES指定名称的目录，库文件编译除外
+# 向上搜索COMMON_DIR_NAMES指定名称的公共目录，库文件编译除外
 ifeq ($(IS_LIB_TARGET),)
 COMMON_DIR_NAMES += $(INCLUDE_MODULE_NAMES)
 tmp := $(strip $(subst /, ,$(subst $(PROJECT_ROOT_DIR),,$(SRC_DIR))))
@@ -362,8 +375,9 @@ ifeq ($(CUR_DIR_NAME),$(TEST_DIR_NAME))
 ALL_FILES += $(shell find $(SUR_DIR) -type f -name '*.h' -o -type f -name '*.hpp' \
 						-o -type f -name '*.c' -o -type f -name '*.cpp' \
 						-o -type f -name '*.a' -o -type f -name '*.so' \
-						| grep -vw 'main.c\|main.cpp')
+						| grep -vw 'main.c\|main.cpp\|'$(TMP_DIR))
 endif
+ALL_FILES := $(sort $(ALL_FILES))
 
 # 头文件所在目录
 tmp := $(dir $(filter %.h %.hpp,$(ALL_FILES)))
@@ -429,12 +443,12 @@ LIB_FILES := $(foreach name1,$(LIB_FILES),\
 				$(shell isfind=n; \
 					for name2 in $(tmp); \
 					do \
-						if [ $$name1 = $$name1 ]; then \
+						if [ $(name1) = $$name2 ]; then \
 							isfind=y; \
 						fi; \
 					done; \
 					if [ $$isfind = n ]; then \
-						echo $$name1; \
+						echo $(name1); \
 					fi; \
 				) \
 			)
@@ -463,7 +477,7 @@ OBJ_FILES := $(filter %.c %.cpp,$(ALL_FILES))
 #				done; \
 #			)
 ifneq ($(LIB_DIRS),)
-# 不编译库文件(.a/.so)的源码文件
+# 过滤译库文件(.a/.so)的源码文件
 OBJ_FILES := $(foreach name,$(OBJ_FILES), \
 				$(shell \
 					dir1=$(dir $(name)); \
@@ -481,7 +495,7 @@ OBJ_FILES := $(foreach name,$(OBJ_FILES), \
 				) \
 			)
 endif
-
+# .o文件列表
 TMP_DIR := $(TMP_DIR)/
 OBJ_FILES := $(OBJ_FILES:%.c=$(TMP_DIR)%.o)
 OBJ_FILES := $(OBJ_FILES:%.cpp=$(TMP_DIR)%.o)
@@ -494,6 +508,8 @@ LIB_DIRS := $(LIB_DIRS:%=-L%)
 # *.c/*/cpp文件搜索的目录，用于编译设置
 #VPATH := $(SRC_DIRS)
 
+# 临时库文件，将所有.o文件合并为一个临时.a文件，再和main.o文件链接，
+# 避免链接进无用符号造成TARGET文件体积臃肿。
 TMP_LIB_TARGET := libtmp.a
 TMP_LDFLAGS := -L$(TMP_DIR) $(TMP_LIB_TARGET:lib%.a=-l%)
 
@@ -504,7 +520,7 @@ all: FIRST_EXEC $(TARGET)
 
 FIRST_EXEC:
 ifdef DEB
-	@echo 'TARGET:'$(TARGET)
+	@echo 'ALL_FILES:'$(ALL_FILES)
 	@echo '**************************************'
 	@echo 'CUR_DIR:'$(CUR_DIR)
 	@echo '**************************************'
@@ -540,9 +556,10 @@ endif
 	@$(STEP_INFO) '[step] Building exec file: '$@
 	$(BUILD_INFO)$(LD) -o $@ $^ $(TMP_LDFLAGS) $(LIB_DIRS) $(LDFLAGS)
 ifneq ($(LOAD_LIB_PATH),)
+# 如果调用到.so文件，请执行以下命令设置库文件的搜索路径变量:LD_LIBRARY_PATH
 	@echo '**********************************************************'
 	@echo
-	@echo 'Please execute the following command to load the LIB(.so) path:'
+	@echo 'Please execute the following command to load the LIB path, if you use it(.so):'
 	@echo 'LD_LIBRARY_PATH=$(LOAD_LIB_PATH) && export LD_LIBRARY_PATH'
 	@echo
 endif
