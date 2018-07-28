@@ -2,7 +2,7 @@
 # Copyleft ©2018 freetoo(yigui-lu)
 # name: t-makefile automatic makefile for ubuntu
 # qq/wx: 48092788    e-mail: gcode@qq.com
-# cn-help: https://blog.csdn.net/guestcode/article/details/81151921
+# cn-help: https://blog.csdn.net/guestcode/article/details/81229127
 # download: https://github.com/freetoo/t-makefile
 # create: 2018-7-7
 ############################################################
