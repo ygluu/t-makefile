@@ -1,5 +1,6 @@
 Automatic makefile
 ===========================
+This is a highly automated project management level makefile source code. It can make your collaborative development work more convenient and efficient.
 	
 |Author|freetoo|
 |---|---
