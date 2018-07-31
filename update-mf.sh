@@ -1,4 +1,4 @@
-#!/bin/bash
+#! /bin/bash 
 
 mfs=$(find multi-project1 multi-project2 -type f -name 'Makefile' -o -type f -name 'build.mk')
 for fn in $mfs;

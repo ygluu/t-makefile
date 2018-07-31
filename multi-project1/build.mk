@@ -109,7 +109,7 @@ ARFLAGS ?= -cr
 #DYMAMIC_LDFLAGS += -lrt -lpthread
 DYMAMIC_LDFLAGS ?= -lrt -lpthread
 # 静态链接标志(static link flag)
-#STATIC_LDFLAGS += -lrt -Wl,--whole-archive -lpthread -Wl,--no-whole-archive
+#STATIC_LDFLAGS += -lrt -ldl -Wl,--whole-archive -lpthread -Wl,--no-whole-archive
 STATIC_LDFLAGS ?=
 
 # 交叉编译设置，关联设置：CROSS_COMPILE_LIB_KEY
@@ -126,6 +126,10 @@ CROSS_COMPILE_LIB_KEY ?= arm-linux-gnueabihf-
 ############################################################
 # 项目规划初期设置
 ############################################################
+# 项目根目录名，不设置则自动以build.mk文件目录为准，如果也没有build.mk文件
+# 则自动以makefile所在文件为准。
+PROJECT_ROOT_DIR_NAME ?=
+
 # 测试目录的目录名称，makefile会排除在搜索范围之外（makefile所在目录例外）
 #TEST_DIR_NAME ?= test
 TEST_DIR_NAME ?= test
@@ -230,9 +234,6 @@ MAKE    := make
 CC  := $(CROSS_COMPILE)gcc
 CXX := $(CROSS_COMPILE)g++
 AR  := $(CROSS_COMPILE)ar
-CC  := gcc
-CXX := g++
-AR  := ar
 # 默认链接器是gcc，如果有cpp文件makefile会自动设置为g++
 ifeq ($(suffix $(MAIN_FILE)),.cpp)
 LD := $(CXX)
@@ -266,16 +267,16 @@ STATIC_LDFLAGS := $(strip $(STATIC_LDFLAGS))
 ifeq ($(DYMAMIC_LDFLAGS)$(STATIC_LDFLAGS),$(DYMAMIC_LDFLAGS))
 # 纯动态链接模式
 #LDFLAGS ?= -Wl,--as-needed -lrt -lpthread $(DYNAMIC_LIB_FILES) $(STATIC_LIB_FILES)
-LDFLAGS ?= $(DYMAMIC_LDFLAGS) $(DYNAMIC_LIB_FILES) $(STATIC_LIB_FILES)
+LDFLAGS ?= $(DYNAMIC_LIB_FILES) $(STATIC_LIB_FILES) $(DYMAMIC_LDFLAGS)
 else ifeq ($(DYMAMIC_LDFLAGS)$(STATIC_LDFLAGS),$(STATIC_LDFLAGS))
 # 纯静态链接模式
 #LDFLAGS ?= -static -lrt -Wl,--whole-archive -lpthread -Wl,--no-whole-archive $(STATIC_LIB_FILES)
-LDFLAGS ?= -static $(STATIC_LDFLAGS) $(STATIC_LIB_FILES)
+LDFLAGS ?= -static $(STATIC_LIB_FILES) $(STATIC_LDFLAGS)
 else
 # 动态静态混合链接模式
 # 模板：LDFLAGS = -Wl,-Bstatic ... $(STATIC_LIB_FILES) -Wl,--as-needed -Wl,-Bdynamic ... $(DYNAMIC_LIB_FILES)
 #LDFLAGS ?= -Wl,-Bstatic -lpthread $(STATIC_LIB_FILES) -Wl,--as-needed -Wl,-Bdynamic -lrt $(DYNAMIC_LIB_FILES)
-LDFLAGS ?= -Wl,-Bstatic $(STATIC_LDFLAGS) $(STATIC_LIB_FILES) -Wl,-Bdynamic $(STATIC_LDFLAGS) $(DYNAMIC_LIB_FILES)
+LDFLAGS ?= -Wl,-Bstatic $(STATIC_LIB_FILES) $(STATIC_LDFLAGS) -Wl,-Bdynamic $(DYNAMIC_LIB_FILES) $(STATIC_LDFLAGS)
 endif
 LDFLAGS += -Wl,--gc-sections
 
@@ -325,8 +326,8 @@ ifeq ($(TMP_DIR),)
 TMP_DIR := tmp
 endif
 
-# 项目根目录全路径名称，即build.mk文件所在目录，如果没有build.mk则等于当前目录
-PROJECT_ROOT_DIR ?= $(shell result=$(CUR_DIR); \
+# build.mk文件所在目录，如果没有build.mk则等于当前目录
+ BUILDMK_DIR ?= $(shell result=$(CUR_DIR); \
 							for dir in $(strip $(subst /, ,$(CUR_DIR))); \
 							do \
 								dirs=$$dirs/$$dir; \
@@ -336,6 +337,23 @@ PROJECT_ROOT_DIR ?= $(shell result=$(CUR_DIR); \
 							done; \
 							echo $$result; \
 					)
+
+# 项目根目录全路径名称
+ifneq ($(PROJECT_ROOT_DIR_NAME),)
+PROJECT_ROOT_DIR := $(shell result=$(BUILDMK_DIR); \
+							for dir in $(strip $(subst /, ,$(CUR_DIR))); \
+							do \
+								dirs=$$dirs/$$dir; \
+								if [ $$dir = $(PROJECT_ROOT_DIR_NAME) ]; then \
+									result=$$dirs; \
+									break; \
+								fi; \
+							done; \
+							echo $$result; \
+					)
+else
+PROJECT_ROOT_DIR := $(BUILDMK_DIR)
+endif
 
 # 向上搜索COMMON_DIR_NAMES指定名称的公共目录，库文件编译除外
 ifeq ($(IS_LIB_TARGET),)
@@ -378,45 +396,6 @@ ALL_FILES += $(shell find $(SUR_DIR) -type f -name '*.h' -o -type f -name '*.hpp
 						| grep -vw 'main.c\|main.cpp\|'$(TMP_DIR))
 endif
 ALL_FILES := $(sort $(ALL_FILES))
-
-# 头文件所在目录
-tmp := $(dir $(filter %.h %.hpp,$(ALL_FILES)))
-tmp := $(shell dirs=/; \
-			for item in $(tmp); \
-			do \
-				if [ ! $$item = $$dirs ]; then \
-					echo $$item; \
-					dirs=$$item; \
-				fi; \
-			done; \
-		)
-# 如果指定头文件目录名，则过滤掉其它的目录
-ifneq ($(INC_DIR_NAMES),)
-tmp := $(foreach item,$(tmp),\
-			$(shell \
-				isfind=n; \
-				for name1 in $(subst /, ,$(item)); \
-				do \
-					for name2 in $(INC_DIR_NAMES); \
-					do \
-						if [ $$name1 = $$name2 ]; then \
-							isfind=y; \
-							break; \
-						fi; \
-					done; \
-					if [ $$isfind = y ]; then \
-						break; \
-					fi; \
-				done; \
-				if [ $$isfind = y ]; then \
-					echo $(item); \
-				fi; \
-			) \
-		)
-endif
-INC_DIRS += $(tmp)
-INC_DIRS := $(strip $(INC_DIRS))
-INC_DIRS := $(INC_DIRS:%=-I%)
 
 # 如果目标文件不是库文件
 ifeq ($(IS_LIB_TARGET),)
@@ -465,6 +444,49 @@ LIB_FILES :=
 DYNAMIC_LIB_FILES := $(DYNAMIC_LIB_FILES:lib%.so=-l%)
 endif # ifeq ($(IS_LIB_TARGET),)
 
+# 头文件所在目录
+tmp := $(dir $(filter %.h %.hpp,$(ALL_FILES)))
+tmp := $(shell dirs=/; \
+			for item in $(tmp); \
+			do \
+				if [ ! $$item = $$dirs ]; then \
+					echo $$item; \
+					dirs=$$item; \
+				fi; \
+			done; \
+		)
+# 如果指定头文件目录名，则过滤掉其它的目录
+ifneq ($(INC_DIR_NAMES),)
+tmp := $(foreach item,$(tmp),\
+			$(shell \
+				isfind=n; \
+				for name1 in $(subst /, ,$(item)); \
+				do \
+					for name2 in $(INC_DIR_NAMES); \
+					do \
+						if [ $$name1 = $$name2 ]; then \
+							isfind=y; \
+							break; \
+						fi; \
+					done; \
+					if [ $$isfind = y ]; then \
+						break; \
+					fi; \
+				done; \
+				if [ $$isfind = y ]; then \
+					echo $(item); \
+				fi; \
+			) \
+		)
+else
+# 过滤译库文件(.a/.so)所在目录的其他头文件目录
+tmp := $(foreach dir1,$(tmp),$(if $(findstring $(dir1),$(foreach dir2,$(LIB_DIRS), $(if $(findstring $(dir2),$(dir1)),$(dir1),))),$(if $(subst $(dir2),,$(dir1)),,$(dir1)),$(dir1)))
+endif
+INC_DIRS := $(INC_DIRS) $(tmp)
+tmp :=
+INC_DIRS := $(strip $(INC_DIRS))
+INC_DIRS := $(INC_DIRS:%=-I%)
+
 # 源文件目录及obj文件列表
 OBJ_FILES := $(filter %.c %.cpp,$(ALL_FILES))
 #SRC_DIRS := $(shell dirs=/; \
@@ -478,22 +500,7 @@ OBJ_FILES := $(filter %.c %.cpp,$(ALL_FILES))
 #			)
 ifneq ($(LIB_DIRS),)
 # 过滤译库文件(.a/.so)的源码文件
-OBJ_FILES := $(foreach name,$(OBJ_FILES), \
-				$(shell \
-					dir1=$(dir $(name)); \
-					isfind=n; \
-					for dir2 in $(LIB_DIRS); \
-					do \
-						if [ $$dir1 = $$dir2 ]; then \
-							isfind=y; \
-							break; \
-						fi; \
-					done; \
-					if [ $$isfind = n ]; then \
-						echo $(name); \
-					fi; \
-				) \
-			)
+OBJ_FILES := $(foreach name,$(OBJ_FILES),$(if $(findstring $(name),$(foreach dir1,$(LIB_DIRS),$(if $(findstring $(dir1),$(name)),$(name),))),,$(name)))
 endif
 # .o文件列表
 TMP_DIR := $(TMP_DIR)/
@@ -511,7 +518,8 @@ LIB_DIRS := $(LIB_DIRS:%=-L%)
 # 临时库文件，将所有.o文件合并为一个临时.a文件，再和main.o文件链接，
 # 避免链接进无用符号造成TARGET文件体积臃肿。
 TMP_LIB_TARGET := libtmp.a
-TMP_LDFLAGS := -L$(TMP_DIR) $(TMP_LIB_TARGET:lib%.a=-l%)
+LIB_DIRS += -L$(TMP_DIR) $(TMP_LIB_TARGET:lib%.a=-l%)
+TMP_LIB_TARGET := $(TMP_DIR)$(TMP_LIB_TARGET)
 
 ############################################################
 # 链接成最终文件
@@ -520,7 +528,7 @@ all: FIRST_EXEC $(TARGET)
 
 FIRST_EXEC:
 ifdef DEB
-	@echo 'ALL_FILES:'$(ALL_FILES)
+	@echo 'TARGET:'$(TARGET)
 	@echo '**************************************'
 	@echo 'CUR_DIR:'$(CUR_DIR)
 	@echo '**************************************'
@@ -549,12 +557,12 @@ endif
 
 #*********************************************
 # 生成exec程序
-$(TMP_TARGET): $(TMP_DIR)$(TMP_LIB_TARGET) $(MAIN_FILE)
+$(TMP_TARGET): $(TMP_LIB_TARGET) $(MAIN_FILE)
 ifeq ($(INFO),1)
 	@echo '**************************************'
 endif
 	@$(STEP_INFO) '[step] Building exec file: '$@
-	$(BUILD_INFO)$(LD) -o $@ $^ $(TMP_LDFLAGS) $(LIB_DIRS) $(LDFLAGS)
+	$(BUILD_INFO)$(LD) $(MAIN_FILE) $(LIB_DIRS) $(LDFLAGS) -o $@
 ifneq ($(LOAD_LIB_PATH),)
 # 如果调用到.so文件，请执行以下命令设置库文件的搜索路径变量:LD_LIBRARY_PATH
 	@echo '**********************************************************'
@@ -566,7 +574,7 @@ endif
 
 #*********************************************
 # 生成临时静态库文件
-$(TMP_DIR)$(TMP_LIB_TARGET): $(OBJ_FILES)
+$(TMP_LIB_TARGET): $(OBJ_FILES)
 ifeq ($(INFO),1)
 	@echo '**************************************'
 endif

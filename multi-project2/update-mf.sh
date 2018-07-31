@@ -1,4 +1,4 @@
-#!/bin/bash
+#! /bin/bash 
 
 mfs=$(find . -name "Makefile")
 for fn in $mfs;

@@ -108,7 +108,7 @@ ARFLAGS ?= -cr
 #DYMAMIC_LDFLAGS += -lrt -lpthread
 DYMAMIC_LDFLAGS ?= -lrt -lpthread
 # 静态链接标志(static link flag)
-#STATIC_LDFLAGS += -lrt -Wl,--whole-archive -lpthread -Wl,--no-whole-archive
+#STATIC_LDFLAGS += -lrt -ldl -Wl,--whole-archive -lpthread -Wl,--no-whole-archive
 STATIC_LDFLAGS ?=
 
 # 交叉编译设置，关联设置：CROSS_COMPILE_LIB_KEY
@@ -126,10 +126,10 @@ CROSS_COMPILE_LIB_KEY ?= arm-linux-gnueabihf-
 # 文件和路径信息准备（非常用项，修改需谨慎）
 ############################################################
 # 当前目录
-CUR_DIR := $(shell pwd)
+CUR_DIR ?= $(shell pwd)
 
 # 项目根目录全路径名称，即build.mk文件所在目录，如果没有build.mk则等于当前目录
-PROJECT_ROOT_DIR ?= $(shell result=$(CUR_DIR); \
+BUILDMK_DIR ?= $(shell result=$(CUR_DIR); \
 							for dir in $(strip $(subst /, ,$(CUR_DIR))); \
 							do \
 								dirs=$$dirs/$$dir; \
@@ -139,7 +139,7 @@ PROJECT_ROOT_DIR ?= $(shell result=$(CUR_DIR); \
 							done; \
 							echo $$result; \
 					)
--include $(PROJECT_ROOT_DIR)/build.mk
+-include $(BUILDMK_DIR)/build.mk
 
 ############################################################
 #
