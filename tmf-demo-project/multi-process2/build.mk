@@ -129,7 +129,7 @@ CROSS_COMPILE_LIB_KEY ?= arm-linux-gnueabihf-
 # 项目根目录名，不设置则自动以build.mk文件目录为准，如果也没有build.mk文件
 # 则自动以makefile所在文件为准。
 # PROJECT_ROOT_DIR_NAME ?= tmf-demo
-PROJECT_ROOT_DIR_NAME ?= tmf-demo
+PROJECT_ROOT_DIR_NAME ?=
 
 # 测试目录的目录名称，makefile会排除在搜索范围之外（makefile所在目录例外）
 #TEST_DIR_NAME ?= test
@@ -218,13 +218,13 @@ endif
 # 编译信息显示设置，1：为全部显示，2：仅显示步骤项，其它：静默无显示
 ifeq ($(INFO),1)
   BUILD_INFO=
-  STEP_INFO=echo
+  STEP_INFO=@echo
 else ifeq ($(INFO),2)
   BUILD_INFO=@
-  STEP_INFO=true
+  STEP_INFO=@true
 else
   BUILD_INFO=@
-  STEP_INFO=echo
+  STEP_INFO=@echo
 endif
 
 # 文件目录操作变量
@@ -363,6 +363,7 @@ endif
 
 # 向上搜索COMMON_DIR_NAMES指定名称的公共目录，库文件编译除外
 ifeq ($(IS_LIB_TARGET),)
+ifneq ($(PROJECT_ROOT_DIR),)
   COMMON_DIR_NAMES += $(INCLUDE_MODULE_NAMES)
   tmp := $(strip $(subst /, ,$(subst $(PROJECT_ROOT_DIR),,$(SRC_DIR))))
   tmp := $(shell Dirs=$(PROJECT_ROOT_DIR); \
@@ -384,6 +385,7 @@ ifeq ($(IS_LIB_TARGET),)
 						done; \
 					done; \
 				)
+endif
 endif
 
 # 所有文件列表
@@ -555,9 +557,9 @@ endif
 #*********************************************
 # 总makefile模式，编译子目录下的所有makefile
 ifneq ($(MF_MAKE_DIRS),)
-	@$(STEP_INFO) '[step] submakefile is making...'
+	$(STEP_INFO) '[step] submakefile is making...'
 	@for dir in $(MF_MAKE_DIRS); do $(MAKE) -C $$dir; done;
-	@$(STEP_INFO) '[step] submakefile make done'
+	$(STEP_INFO) '[step] submakefile make done'
 endif
 
 #*********************************************
@@ -566,7 +568,7 @@ $(TMP_TARGET): $(TMP_LIB_TARGET) $(MAIN_FILE)
 ifeq ($(INFO),1)
 	@echo '**************************************'
 endif
-	@$(STEP_INFO) '[step] Building exec file: '$@
+	$(STEP_INFO) '[step] Building exec file: '$@
 	$(BUILD_INFO)$(LD) $(MAIN_FILE) $(LIB_DIRS) $(TMP_LIB_DIRS) $(LDFLAGS) -o $@
 ifneq ($(LOAD_LIB_PATH),)
 # 如果调用到.so文件，请执行以下命令设置库文件的搜索路径变量:LD_LIBRARY_PATH
@@ -583,8 +585,8 @@ $(TMP_LIB_TARGET): $(OBJ_FILES)
 ifeq ($(INFO),1)
 	@echo '**************************************'
 endif
-	@$(STEP_INFO) '[step] Building temp static lib file: '$@
-	$(BUILD_INFO)$(AR) $(ARFLAGS) -o $@ $^
+	$(STEP_INFO) '[step] Building temp static lib file: '$@
+	@$(AR) $(ARFLAGS) -o $@ $^
 
 #*********************************************
 # 生成静态库文件
@@ -592,7 +594,7 @@ $(TMP_TARGET).a: $(OBJ_FILES)
 ifeq ($(INFO),1)
 	@echo '**************************************'
 endif
-	@$(STEP_INFO) '[step] Building static lib file: '$@
+	$(STEP_INFO) '[step] Building static lib file: '$@
 	$(BUILD_INFO)$(AR) $(ARFLAGS) -o $@ $^
 
 #*********************************************
@@ -601,7 +603,7 @@ $(TMP_TARGET).so: $(OBJ_FILES)
 ifeq ($(INFO),1)
 	@echo '**************************************'
 endif
-	@$(STEP_INFO) '[step] Building dynamic lib file: '$@
+	$(STEP_INFO) '[step] Building dynamic lib file: '$@
 ifneq ($(CHECK_LDFLAGS),)
 	@echo $(CHECK_LDFLAGS)
 endif
@@ -613,7 +615,7 @@ $(TMP_DIR)%.o: %.c
 ifeq ($(INFO),1)
 	@echo '**************************************'
 endif
-	@$(STEP_INFO) '[step] Compiling c file: '$<
+	$(STEP_INFO) '[step] Compiling c file: '$<
 	@$(MKDIR) $(dir $@)
 	$(BUILD_INFO)$(CC) $(CCFLAGS) -c $< -o $@ $(INC_DIRS)
 
@@ -623,7 +625,7 @@ $(TMP_DIR)%.o: %.cpp
 ifeq ($(INFO),1)
 	@echo '**************************************'
 endif
-	@$(STEP_INFO) '[step] Compiling cpp file: '$<
+	$(STEP_INFO) '[step] Compiling cpp file: '$<
 	@$(MKDIR) $(dir $@)
 	$(BUILD_INFO)$(CXX) $(CXXFLAGS) -c $< -o $@ $(INC_DIRS)
 
@@ -637,9 +639,9 @@ endif
 clean:
 ifneq ($(MF_CLEAN_DIRS),)
 # 总makefile模式
-	@$(STEP_INFO) '[step] submakefile cleaning...'
+	$(STEP_INFO) '[step] submakefile cleaning...'
 	@for dir in $(MF_CLEAN_DIRS); do $(MAKE) -C $$dir clean; done;
-	@$(STEP_INFO) '[step] submakefile cleaned'
+	$(STEP_INFO) '[step] submakefile cleaned'
 endif
 #*********************************************
 # 不删除库目标文件

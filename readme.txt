@@ -1,14 +1,11 @@
 
 一、目录说明：
 
-在以下复杂度的目录结构中，makefile和build.mk都是高度一致的：
-
-1、multi-project1：简约目录结构的多项目工程
-2、multi-project1：标准目录结构的多项目工程
-3、single-project：单一进程的项目工程
+1、tmf-demo：示例项目工程的根目录
 
 二、文件说明
-1、build.mk: 主makefile代码文件
-2、Makefile：子makefile代码文件
-3、update-mf.sh：makefile代码文件派发
+1、build.mk: 主makefile源代码文件（可独立成一个makefile文件）
+2、Makefile：子makefile源代码文件
+3、update-mf.sh：build.mk、makefile文件更新到目录tmf-demo中
+   注意：将会覆盖tmf-demo的build.mk和makefile文件
 
