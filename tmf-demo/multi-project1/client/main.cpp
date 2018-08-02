@@ -1,5 +1,7 @@
 #include <iostream>
 
+#include "tmf.hpp"
+
 extern "C" 
 {
 #include "md5.h"
@@ -18,9 +20,10 @@ int main()
 	#ifdef DEBUG
 	std::cout << "is debug mod" << std::endl;
 	#endif
+	GetTMF();
 	// 需要把so文件放在当前目前或者系统lib目录才能调用
 	// 或者执行编译执行成功后提示的shell命令
-	//GetCRC();
+	GetCRC();
 	GetMD5();
 	GetRSA();
 
