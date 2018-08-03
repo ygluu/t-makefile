@@ -44,10 +44,6 @@
 #	└── Makefile
 #
 # Makefile Scope：current directory(subdirectory) + upper common directory(subdirectory)
-# Process Makefile:
-# 		upper common directory = ../01-lib ../02-com
-# Test Makefile:
-#       upper common directory = ../../01-lib ../../02-inc ../../../01-lib ../../../02-com
 # The setting of the upper common directory reference variable COMMON_DIR_NAMES
 #
 # makefile的作用域是：当前目录及子其目录+上层公共目录及其子目录，
@@ -88,16 +84,16 @@ DEBUG ?= y
 DEFS +=
 
 # C代码编译标志(C code compile flag)
-#CCFLAGS  ?= -Wall -Wfatal-errors -MMD
-CCFLAGS  ?= -Wall -Wfatal-errors -MMD
+#CC_FLAGS  ?= -Wall -Wfatal-errors -MMD
+CC_FLAGS  ?= -Wall -Wfatal-errors -MMD
 
-# C++代码编译标志(C++ code compile flag)，注：最终CXXFLAGS += $(CCFLAGS)()
-#CXXFLAGS ?= -std=c++11
-CXXFLAGS ?= -std=c++11
+# C++代码编译标志(C++ code compile flag)，注：最终CXX_FLAGS += $(CC_FLAGS)()
+#CXX_FLAGS ?= -std=c++11
+CXX_FLAGS ?= -std=c++11
 
 # 编译静态库文件设置标志(Compiling a static library file setting flag)
-#ARFLAGS ?= -cr
-ARFLAGS ?= -cr
+#AR_FLAGS ?= -cr
+AR_FLAGS ?= -cr
 
 # 链接标志，默认纯动态链接模式(Link flag, default pure dynamic link mode)
 # static  mode: DYMAMIC_LDFLAG ?=        STATIC_LDFLAGS ?=
@@ -141,14 +137,14 @@ TEST_DIR_NAME ?= test
 TMP_DIR ?= tmp
 
 # 要包含的上层公共目录名列表，包含库目录、头文件目录等的目录名
-#COMMON_DIR_NAMES += lib inc include com comment \
-#					01-lib 01-inc 01-include 01-com 01-comment \
-#					02-lib 02-inc 02-include 02-com 02-comment \
-#					03-lib 03-inc 03-include 03-com 03-comment
-COMMON_DIR_NAMES ?= lib inc include com comment \
-					01-lib 01-inc 01-include 01-com 01-comment \
-					02-lib 02-inc 02-include 02-com 02-comment \
-					03-lib 03-inc 03-include 03-com 03-comment
+#COMMON_DIR_NAMES += lib inc include com common \
+#					01-lib 01-inc 01-include 01-com 01-common \
+#					02-lib 02-inc 02-include 02-com 02-common \
+#					03-lib 03-inc 03-include 03-com 03-common
+COMMON_DIR_NAMES ?= lib inc include com common \
+					01-lib 01-inc 01-include 01-com 01-common \
+					02-lib 02-inc 02-include 02-com 02-common \
+					03-lib 03-inc 03-include 03-com 03-common
 
 # 头文件目录名列表，INC_DIR_NAMES是COMMON_DIR_NAMES的子集，
 # 一旦设置了本变量，makefile只将其及其子目录加入编译参数-I中。
@@ -257,14 +253,14 @@ DEFS := $(DEFS) $(tmp:%=EXC_%)
 DEFS := $(DEFS:%=-D%)
 
 # C代码编译设置标志
-CCFLAGS += $(DEFS)
+CC_FLAGS += $(DEFS)
 ifeq ($(DEBUG), y)
-  CCFLAGS += -ggdb -rdynamic -g
+  CC_FLAGS += -ggdb -rdynamic -g
 else
-  CCFLAGS += -O2 -s
+  CC_FLAGS += -O2 -s
 endif
 # 不使用到的符号不链接到目标文件中
-CCFLAGS += -ffunction-sections -fdata-sections
+CC_FLAGS += -ffunction-sections -fdata-sections
 
 # 链接标志和链接库设置（除TOP_MODULE_DIRS目录下的*.a和*.so文件之外的链接库设置）
 # STATIC_LIB_FILES和DYNAMIC_LIB_FILES变量是makefile作用域里面的.a和.so文件列表，请一定保留
@@ -288,12 +284,12 @@ LDFLAGS += -Wl,--gc-sections
 
 # 编译动态库设置项
 ifeq ($(suffix $(TARGET)),.so)
-  CCFLAGS += -fPIC
+  CC_FLAGS += -fPIC
   LDFLAGS += -shared
 endif
 
-# 最终CXXFLAGS包含CCFLAGS
-CXXFLAGS += $(CCFLAGS)
+# 最终CXX_FLAGS包含CC_FLAGS
+CXX_FLAGS += $(CC_FLAGS)
 
 # 检查编译so文件时，是否是错误设置为静态链接标志
 CHECK_LDFLAGS := $(if $(findstring static,$(LDFLAGS)),'Error: build file(*.so) not use static flag',)
@@ -535,7 +531,7 @@ ifdef DEB
 	@echo '**************************************'
 	@echo 'PROJECT_ROOT_DIR:'$(PROJECT_ROOT_DIR)
 	@echo '**************************************'
-	@echo 'TARGET:'$(ALL_FILES)
+	@echo 'TARGET:'$(TARGET)
 	@echo '**************************************'
 	@echo 'CUR_DIR:'$(CUR_DIR)
 	@echo '**************************************'
@@ -586,7 +582,7 @@ ifeq ($(INFO),1)
 	@echo '**************************************'
 endif
 	$(STEP_INFO) '[step] Building temp static lib file: '$@
-	@$(AR) $(ARFLAGS) -o $@ $^
+	$(BUILD_INFO)$(AR) $(AR_FLAGS) -o $@ $^
 
 #*********************************************
 # 生成静态库文件
@@ -595,7 +591,7 @@ ifeq ($(INFO),1)
 	@echo '**************************************'
 endif
 	$(STEP_INFO) '[step] Building static lib file: '$@
-	$(BUILD_INFO)$(AR) $(ARFLAGS) -o $@ $^
+	$(BUILD_INFO)$(AR) $(AR_FLAGS) -o $@ $^
 
 #*********************************************
 # 生成动态库文件
@@ -617,7 +613,7 @@ ifeq ($(INFO),1)
 endif
 	$(STEP_INFO) '[step] Compiling c file: '$<
 	@$(MKDIR) $(dir $@)
-	$(BUILD_INFO)$(CC) $(CCFLAGS) -c $< -o $@ $(INC_DIRS)
+	$(BUILD_INFO)$(CC) $(CC_FLAGS) -c $< -o $@ $(INC_DIRS)
 
 #*********************************************
 # 编译c++代码文件
@@ -627,7 +623,7 @@ ifeq ($(INFO),1)
 endif
 	$(STEP_INFO) '[step] Compiling cpp file: '$<
 	@$(MKDIR) $(dir $@)
-	$(BUILD_INFO)$(CXX) $(CXXFLAGS) -c $< -o $@ $(INC_DIRS)
+	$(BUILD_INFO)$(CXX) $(CXX_FLAGS) -c $< -o $@ $(INC_DIRS)
 
 #*********************************************
 # 头文件关联

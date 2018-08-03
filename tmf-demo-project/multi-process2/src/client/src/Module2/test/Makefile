@@ -21,7 +21,8 @@
 #     2、make clean                       # 清除临时文件及TARGET文件 
 #     3、make INFO=1                      # 编译时打印详细信息 
 #     4、make INFO=2                      # 静默编译 
-#     5、make CROSS_COMPILE=...           #交叉编译设置
+#     5、make CROSS_COMPILE=...           # 交叉编译设置
+#     6、make [clean] ALL=y               # 执行本目录和子目录的makefile
 
 # 自动makefile作用域（示例）:
 # Automatic makefile scope(demo)：
@@ -43,10 +44,6 @@
 #	└── Makefile
 #
 # Makefile Scope：current directory(subdirectory) + upper common directory(subdirectory)
-# Process Makefile:
-# 		upper common directory = ../01-lib ../02-com
-# Test Makefile:
-#       upper common directory = ../../01-lib ../../02-inc ../../../01-lib ../../../02-com
 # The setting of the upper common directory reference variable COMMON_DIR_NAMES
 #
 # makefile的作用域是：当前目录及子其目录+上层公共目录及其子目录，
@@ -68,7 +65,7 @@ TARGET ?=
 # 但要确保名称的唯一性，且为上层目录的一级目录名。
 # 对于要包含的模块，makefile会为其增加宏定义用于条件编译：INC_MODULENAME
 #INCLUDE_MODULE_NAMES += ModuleName
-INCLUDE_MODULE_NAMES += Module1
+INCLUDE_MODULE_NAMES +=
 
 # 要排除的模块目录名列表（在makefile作用域内）
 # 对于要排除的模块，makefile会为其增加宏定义用于条件编译：EXC_MODULENAME
@@ -87,16 +84,16 @@ DEBUG ?= y
 DEFS +=
 
 # C代码编译标志(C code compile flag)
-#CCFLAGS  ?= -Wall -Wfatal-errors -MMD
-CCFLAGS  ?= -Wall -Wfatal-errors -MMD
+#CC_FLAGS  ?= -Wall -Wfatal-errors -MMD
+CC_FLAGS  ?= -Wall -Wfatal-errors -MMD
 
-# C++代码编译标志(C++ code compile flag)，注：最终CXXFLAGS += $(CCFLAGS)()
-#CXXFLAGS ?= -std=c++11
-CXXFLAGS ?= -std=c++11
+# C++代码编译标志(C++ code compile flag)，注：最终CXX_FLAGS += $(CC_FLAGS)()
+#CXX_FLAGS ?= -std=c++11
+CXX_FLAGS ?= -std=c++11
 
 # 编译静态库文件设置标志(Compiling a static library file setting flag)
-#ARFLAGS ?= -cr
-ARFLAGS ?= -cr
+#AR_FLAGS ?= -cr
+AR_FLAGS ?= -cr
 
 # 链接标志，默认纯动态链接模式(Link flag, default pure dynamic link mode)
 # static  mode: DYMAMIC_LDFLAG ?=        STATIC_LDFLAGS ?=
@@ -121,6 +118,43 @@ CROSS_COMPILE ?=
 # makefile会根据CROSS_COMPILE_LIB_KEY的设置来选择相应的库文件。
 #CROSS_COMPILE_LIB_KEY ?= arm-linux-gnueabihf-
 CROSS_COMPILE_LIB_KEY ?= arm-linux-gnueabihf-
+
+############################################################
+# 项目规划初期设置
+############################################################
+# 项目根目录名，不设置则自动以build.mk文件目录为准，如果也没有build.mk文件
+# 则自动以makefile所在文件为准。
+# PROJECT_ROOT_DIR_NAME ?= tmf-demo
+PROJECT_ROOT_DIR_NAME ?=
+
+# 测试目录的目录名称，makefile会排除在搜索范围之外（makefile所在目录例外）
+#TEST_DIR_NAME ?= test
+TEST_DIR_NAME ?= test
+
+# 临时目录的目录名称，makefile会排除在搜索范围之外
+# 编译时临时文件（.o/.d等文件）所在的目录，如果不设置则默认为tmp
+#TMP_DIR ?= tmp
+TMP_DIR ?= tmp
+
+# 要包含的上层公共目录名列表，包含库目录、头文件目录等的目录名
+#COMMON_DIR_NAMES += lib inc include com common \
+#					01-lib 01-inc 01-include 01-com 01-common \
+#					02-lib 02-inc 02-include 02-com 02-common \
+#					03-lib 03-inc 03-include 03-com 03-common
+COMMON_DIR_NAMES ?= lib inc include com common \
+					01-lib 01-inc 01-include 01-com 01-common \
+					02-lib 02-inc 02-include 02-com 02-common \
+					03-lib 03-inc 03-include 03-com 03-common
+
+# 头文件目录名列表，INC_DIR_NAMES是COMMON_DIR_NAMES的子集，
+# 一旦设置了本变量，makefile只将其及其子目录加入编译参数-I中。
+# 如果不设置，makefile会自动搜含有头文件的目录加入编译参数-I中。
+#INC_DIR_NAMES ?= inc include 01-inc 01-include 02-inc 02-include 03-inc 03-include
+INC_DIR_NAMES ?=
+
+# 要排除的目录名列表，比如文档目录、备份目录等
+#EXCLUDE_DIR_NAMES += .git tmp temp doc docs bak
+EXCLUDE_DIR_NAMES ?= .git tmp temp doc docs bak
 
 ############################################################
 # 文件和路径信息准备（非常用项，修改需谨慎）
