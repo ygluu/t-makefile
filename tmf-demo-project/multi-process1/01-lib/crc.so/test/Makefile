@@ -44,10 +44,10 @@
 #	└── Makefile
 #
 # Makefile Scope：current directory(subdirectory) + upper common directory(subdirectory)
-# The setting of the upper common directory reference variable COMMON_DIR_NAMES
+# The setting of the upper common directory reference variable COMMON_DIR_NAMES(01-lib 02-com 02-inc)
 #
 # makefile的作用域是：当前目录及子其目录+上层公共目录及其子目录，
-# 公共目录的设置参考变量COMMON_DIR_NAMES的设置。
+# 公共目录的设置参考变量COMMON_DIR_NAMES的设置(01-lib 02-com 02-inc)。
 
 # 名词解释：
 #   上层、向上：是指由makefile所在目录向系统根目录方向到build.mk文件
@@ -118,43 +118,6 @@ CROSS_COMPILE ?=
 # makefile会根据CROSS_COMPILE_LIB_KEY的设置来选择相应的库文件。
 #CROSS_COMPILE_LIB_KEY ?= arm-linux-gnueabihf-
 CROSS_COMPILE_LIB_KEY ?= arm-linux-gnueabihf-
-
-############################################################
-# 项目规划初期设置
-############################################################
-# 项目根目录名，不设置则自动以build.mk文件目录为准，如果也没有build.mk文件
-# 则自动以makefile所在文件为准。
-# PROJECT_ROOT_DIR_NAME ?= tmf-demo
-PROJECT_ROOT_DIR_NAME ?=
-
-# 测试目录的目录名称，makefile会排除在搜索范围之外（makefile所在目录例外）
-#TEST_DIR_NAME ?= test
-TEST_DIR_NAME ?= test
-
-# 临时目录的目录名称，makefile会排除在搜索范围之外
-# 编译时临时文件（.o/.d等文件）所在的目录，如果不设置则默认为tmp
-#TMP_DIR ?= tmp
-TMP_DIR ?= tmp
-
-# 要包含的上层公共目录名列表，包含库目录、头文件目录等的目录名
-#COMMON_DIR_NAMES += lib inc include com common \
-#					01-lib 01-inc 01-include 01-com 01-common \
-#					02-lib 02-inc 02-include 02-com 02-common \
-#					03-lib 03-inc 03-include 03-com 03-common
-COMMON_DIR_NAMES ?= lib inc include com common \
-					01-lib 01-inc 01-include 01-com 01-common \
-					02-lib 02-inc 02-include 02-com 02-common \
-					03-lib 03-inc 03-include 03-com 03-common
-
-# 头文件目录名列表，INC_DIR_NAMES是COMMON_DIR_NAMES的子集，
-# 一旦设置了本变量，makefile只将其及其子目录加入编译参数-I中。
-# 如果不设置，makefile会自动搜含有头文件的目录加入编译参数-I中。
-#INC_DIR_NAMES ?= inc include 01-inc 01-include 02-inc 02-include 03-inc 03-include
-INC_DIR_NAMES ?=
-
-# 要排除的目录名列表，比如文档目录、备份目录等
-#EXCLUDE_DIR_NAMES += .git tmp temp doc docs bak
-EXCLUDE_DIR_NAMES ?= .git tmp temp doc docs bak
 
 ############################################################
 # 文件和路径信息准备（非常用项，修改需谨慎）

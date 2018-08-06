@@ -44,10 +44,10 @@
 #	└── Makefile
 #
 # Makefile Scope：current directory(subdirectory) + upper common directory(subdirectory)
-# The setting of the upper common directory reference variable COMMON_DIR_NAMES
+# The setting of the upper common directory reference variable COMMON_DIR_NAMES(01-lib 02-com 02-inc)
 #
 # makefile的作用域是：当前目录及子其目录+上层公共目录及其子目录，
-# 公共目录的设置参考变量COMMON_DIR_NAMES的设置。
+# 公共目录的设置参考变量COMMON_DIR_NAMES的设置(01-lib 02-com 02-inc)。
 
 # 名词解释：
 #   上层、向上：是指由makefile所在目录向系统根目录方向到build.mk文件
