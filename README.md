@@ -2,9 +2,8 @@ Automatic makefile
 ===========================
 This is a highly automated project management level makefile source code. It can make your collaborative development work more convenient and efficient.
 	
-|Author|freetoo|
+|Author|Yigui Lu|
 |---|---
-|E-mail|gcode@qq.com
 
 [中文说明](https://blog.csdn.net/guestcode/article/details/81229127)
 
